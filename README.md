@@ -27,6 +27,7 @@ body when detached from the supports. The term _internal_ is used here to refer 
 of members contained within the truss. The instability due to insufficient external supports or due to improper 
 arrangement of external supports is referred to as _external_.
 
+> [!NOTE]
 > The internal stability of a determinate plane truss is assessed by this equation :
 > **m + r = 2j** 
 
@@ -35,6 +36,7 @@ Where :
 - **r** : number of support reactions
 - **j** : number of nodes or joints
 
+> [!NOTE]
 > **m + r > 2j** is also stable, but is considered ***statically indeterminate***, case which will not be treated by 
 our program.
 
