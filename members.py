@@ -56,7 +56,4 @@ class Member(customtkinter.CTkFrame):
 
         # Creating a frame for the member parameters
         self.member_frame = MemberFrame(self)
-        self.member_frame.grid(row=0, column=0, padx=10, pady=10)
-
-        self.rowconfigure(index=0, weight=1)
-        self.columnconfigure(index=0, weight=1)
+        self.member_frame.grid(row=0, column=0, padx=0, pady=0)

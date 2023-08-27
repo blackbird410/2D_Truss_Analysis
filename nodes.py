@@ -25,8 +25,8 @@ class NodeFrame(customtkinter.CTkFrame):
         self.label_2.grid(row=1, column=0, padx=10, pady=10)
         self.input_1.grid(row=0, column=1, padx=10, pady=10)
         self.input_2.grid(row=1, column=1, padx=10, pady=10)
-        self.reaction.grid(row=0, column=3, rowspan=2, padx=10, pady=10)
-        self.save.grid(row=2, column=0, columnspan=3, padx=10, pady=10)
+        self.reaction.grid(row=2, column=1, padx=10, pady=10)
+        self.save.grid(row=3, column=0, columnspan=2, padx=10, pady=10)
 
 
     def save_node(self):
@@ -41,12 +41,6 @@ class Node(customtkinter.CTkFrame):
     def __init__(self, master):
         super().__init__(master)
 
-        # self.title("Nodes")
-        # self.geometry("450x200")
-
         # Creating a frame for entering the nodes parameters
         self.node_frame = NodeFrame(self)
-        self.node_frame.grid(row=0, column=0, padx=10, pady=10)
-
-        self.rowconfigure(index=0, weight=1)
-        self.columnconfigure(index=0, weight=1)
+        self.node_frame.grid(row=0, column=0, padx=0, pady=0)

@@ -40,12 +40,6 @@ class Load(customtkinter.CTkFrame):
     def __init__(self, master):
         super().__init__(master)
 
-        # self.title("Loads")
-        # self.geometry("300x300")
-
         # Creating frame for entering loads parameters
         self.load_frame = LoadFrame(self)
         self.load_frame.grid(row=0, column=0, padx=0, pady=0)
-
-        self.rowconfigure(index=0, weight=1)
-        self.columnconfigure(index=0, weight=1)

@@ -41,20 +41,27 @@ class App(customtkinter.CTk):
         super().__init__()
 
         self.title("2D Truss Analysis")
-        self.geometry("700x350")
+        self.geometry("950x350")
 
         # Create the frame of the buttons
         self.button_frame = ButtonFrame(self)
         self.button_frame.grid(row=0, column=0, padx=10, pady=10)
 
+        # Creating a frame for the canvas
+        self.canvas = customtkinter.CTkCanvas(self, width="420", bg="lightgrey")
+        self.canvas.grid(row=0, column=1, padx=10, pady=10, sticky="nsew")
+        self.canvas.columnconfigure(0, weight=1)
+
         # Creating a frame for the options
         self.option_frame = OptionFrame(self)
-        self.option_frame.grid(row=0, column=1, padx=10, pady=10, sticky="nsew")
-        self.option_frame.configure(fg_color="transparent")
-        self.option_frame.rowconfigure(index=0, weight=1)
+        self.option_frame.grid(row=0, column=2, padx=10, pady=10, sticky="nsew")
+        # self.option_frame.configure(fg_color="transparent")
+        self.rowconfigure(index=2, weight=1)
 
-        
+
     def destroy_frame(self):
+        """Remove the widget in the second column of the main window for adding new ones."""
+
         for widget in self.option_frame.winfo_children():
             widget.destroy()
         return 0
@@ -69,7 +76,6 @@ class App(customtkinter.CTk):
         member_frame = Member(self.option_frame)
         member_frame.grid(row=0, column=1, padx=10, pady=10)
 
-    
     def add_loads(self):
         self.destroy_frame()
         load_frame = Load(self.option_frame)
@@ -88,7 +94,6 @@ class App(customtkinter.CTk):
         sys.exit("Program terminated...")
     
 
-def create_gui(s="App"):
+def create_gui():
     app = App()
-
     app.mainloop()
