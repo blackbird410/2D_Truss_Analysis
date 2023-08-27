@@ -17,7 +17,7 @@ def create_database():
     db = SQL("sqlite:///data.db")
     db.execute(
         """CREATE TABLE IF NOT EXISTS nodes (
-            id INTEGER PRIMARY KEY NOT NULL, 
+            id INTEGER PRIMARY KEY NOT NULL UNIQUE, 
             x INTEGER NOT NULL, 
             y INTEGER NOT NULL, 
             rx INTEGER NOT NULL, 

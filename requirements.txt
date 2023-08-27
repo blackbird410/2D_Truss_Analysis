@@ -1,0 +1,5 @@
+## Required Libraries
+- customtkinter
+- cs50
+- sqlite3
+- CTkMessagebox

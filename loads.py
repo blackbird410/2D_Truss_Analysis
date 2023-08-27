@@ -1,4 +1,6 @@
 import customtkinter
+from cs50 import SQL
+from CTkMessagebox import CTkMessagebox 
 
 
 class LoadFrame(customtkinter.CTkFrame):
@@ -32,7 +34,20 @@ class LoadFrame(customtkinter.CTkFrame):
         n = self.input_1.get()
         x = self.input_2.get()
         y = self.input_3.get()
-        print(f"Node: {n} | X: {x} | Y: {y}")
+        
+        db = SQL("sqlite:///data.db")
+        try:
+            db.execute("""INSERT INTO loads (x_load, y_load, node) VALUES (?, ?, ?);""", x, y, n)
+        except ValueError:
+            CTkMessagebox(title="Error", message="Wrong imput!!!", icon="cancel")
+        self.clear()
+
+
+    def clear(self):
+        self.input_1.delete(0, customtkinter.END)
+        self.input_2.delete(0, customtkinter.END)
+        self.input_3.delete(0, customtkinter.END)
+
 
 
 class Load(customtkinter.CTkFrame):

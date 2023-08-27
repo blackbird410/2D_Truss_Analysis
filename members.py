@@ -1,5 +1,6 @@
 import customtkinter
-
+from cs50 import SQL
+from CTkMessagebox import CTkMessagebox 
 
 class MemberFrame(customtkinter.CTkFrame):
     def __init__(self, master):
@@ -43,9 +44,22 @@ class MemberFrame(customtkinter.CTkFrame):
         yg_mod = self.input_4.get()
         inertia = self.input_5.get()
 
-        print(
-            f"Start: {s_node}\nEnd: {e_node}\nArea: {s_area}\nE: {yg_mod}\nI: {inertia}"
-        )
+        db = SQL("sqlite:///data.db")
+        try:
+            db.execute("""INSERT INTO members (
+                    start_node, end_node, section_area, young_mod, inertia)
+                    VALUES (?, ?, ?, ?, ?);""", s_node, e_node, s_area, yg_mod, inertia)
+        except ValueError:
+            CTkMessagebox(title="Error", message="Wrong imput!!!", icon="cancel")        
+        self.clear()
+        
+
+    def clear(self):
+        self.input_1.delete(0, customtkinter.END)
+        self.input_2.delete(0, customtkinter.END)
+        self.input_3.delete(0, customtkinter.END)
+        self.input_4.delete(0, customtkinter.END)
+        self.input_5.delete(0, customtkinter.END)
 
 
 class Member(customtkinter.CTkFrame):
