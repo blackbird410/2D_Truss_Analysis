@@ -47,12 +47,12 @@ class MemberFrame(customtkinter.CTkFrame):
         print(f"Start: {s_node}\nEnd: {e_node}\nArea: {s_area}\nE: {yg_mod}\nI: {inertia}")
 
 
-class Member(customtkinter.CTk):
-    def __init__(self):
-        super().__init__()
+class Member(customtkinter.CTkFrame):
+    def __init__(self, master):
+        super().__init__(master)
 
-        self.title("Members")
-        self.geometry("350x350")
+        # self.title("Members")
+        # self.geometry("350x350")
 
         # Creating a frame for the member parameters
         self.member_frame = MemberFrame(self)

@@ -36,12 +36,12 @@ class LoadFrame(customtkinter.CTkFrame):
         print(f"Node: {n} | X: {x} | Y: {y}")
 
     
-class Load(customtkinter.CTk):
-    def __init__(self):
-        super().__init__()
+class Load(customtkinter.CTkFrame):
+    def __init__(self, master):
+        super().__init__(master)
 
-        self.title("Loads")
-        self.geometry("300x300")
+        # self.title("Loads")
+        # self.geometry("300x300")
 
         # Creating frame for entering loads parameters
         self.load_frame = LoadFrame(self)

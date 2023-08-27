@@ -37,12 +37,12 @@ class NodeFrame(customtkinter.CTkFrame):
         print(f"X: {x} | Y: {y} | Reaction: {r}")
 
 
-class Node(customtkinter.CTk):
-    def __init__(self):
-        super().__init__()
+class Node(customtkinter.CTkFrame):
+    def __init__(self, master):
+        super().__init__(master)
 
-        self.title("Nodes")
-        self.geometry("450x200")
+        # self.title("Nodes")
+        # self.geometry("450x200")
 
         # Creating a frame for entering the nodes parameters
         self.node_frame = NodeFrame(self)

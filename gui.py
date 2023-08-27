@@ -1,8 +1,13 @@
 import customtkinter
+import sys
 from nodes import *
 from members import *
 from loads import *
 
+
+class OptionFrame(customtkinter.CTkFrame):
+    def __init__(self, master):
+        super().__init__(master)
 
 
 class ButtonFrame(customtkinter.CTkFrame):
@@ -10,12 +15,13 @@ class ButtonFrame(customtkinter.CTkFrame):
         super().__init__(master)
 
         # Create GUI  buttons
-        self.b_1 = customtkinter.CTkButton(self, text="Node", command=self.add_nodes)
-        self.b_2 = customtkinter.CTkButton(self, text="Member", command=self.add_members)
-        self.b_3 = customtkinter.CTkButton(self, text="Load", command=self.add_loads)
-        self.b_4 = customtkinter.CTkButton(self, text="Analyze", command=self.analyze)
-        self.b_5 = customtkinter.CTkButton(self, text="Results", command=self.get_results)
-        self.b_6 = customtkinter.CTkButton(self, text="Deformations", command=self.show_deformation)
+        self.b_1 = customtkinter.CTkButton(self, text="Node", command=master.add_nodes)
+        self.b_2 = customtkinter.CTkButton(self, text="Member", command=master.add_members)
+        self.b_3 = customtkinter.CTkButton(self, text="Load", command=master.add_loads)
+        self.b_4 = customtkinter.CTkButton(self, text="Analyze", command=master.analyze)
+        self.b_5 = customtkinter.CTkButton(self, text="Results", command=master.get_results)
+        self.b_6 = customtkinter.CTkButton(self, text="Deformations", command=master.show_deformation)
+        self.b_7 = customtkinter.CTkButton(self, text="Exit", fg_color="red", command=master.exit)
         
         self.b_1.grid(row=0, column=0, padx=20, pady=10)
         self.b_2.grid(row=1, column=0, padx=20, pady=10)
@@ -23,33 +29,7 @@ class ButtonFrame(customtkinter.CTkFrame):
         self.b_4.grid(row=3, column=0, padx=20, pady=10)
         self.b_5.grid(row=4, column=0, padx=20, pady=10)
         self.b_6.grid(row=5, column=0, padx=20, pady=10)
-
-
-    def add_nodes(self):
-        print("Adding nodes")
-        create_gui("Node")
-
-
-    def add_members(self):
-        print("Adding members")
-        create_gui("Member")
-    
-    
-    def add_loads(self):
-        print("Adding loads")
-        create_gui("Load")
-
-    
-    def analyze(self):
-        print("Analyzing")
-
-    
-    def get_results(self):
-        print("Showing results")
-
-
-    def show_deformation(self):
-        print("Showing deformations")
+        self.b_7.grid(row=6, column=0, padx=20, pady=10)        
 
 
     def button_callback(self):
@@ -61,24 +41,54 @@ class App(customtkinter.CTk):
         super().__init__()
 
         self.title("2D Truss Analysis")
-        self.geometry("700x320")
+        self.geometry("700x350")
 
         # Create the frame of the buttons
         self.button_frame = ButtonFrame(self)
         self.button_frame.grid(row=0, column=0, padx=10, pady=10)
+
+        # Creating a frame for the options
+        self.option_frame = OptionFrame(self)
+        self.option_frame.grid(row=0, column=1, padx=10, pady=10, sticky="nsew")
+        self.option_frame.configure(fg_color="transparent")
+        self.option_frame.rowconfigure(index=0, weight=1)
+
+        
+    def destroy_frame(self):
+        for widget in self.option_frame.winfo_children():
+            widget.destroy()
+        return 0
+
+    def add_nodes(self):
+        self.destroy_frame()
+        node_frame = Node(self.option_frame)
+        node_frame.grid(row=0, column=1, padx=10, pady=10)
+
+    def add_members(self):
+        self.destroy_frame()
+        member_frame = Member(self.option_frame)
+        member_frame.grid(row=0, column=1, padx=10, pady=10)
+
+    
+    def add_loads(self):
+        self.destroy_frame()
+        load_frame = Load(self.option_frame)
+        load_frame.grid(row=0, column=1, padx=10, pady=10)
+    
+    def analyze(self):
+        self.destroy_frame()
+    
+    def get_results(self):
+        self.destroy_frame()
+
+    def show_deformation(self):
+        self.destroy_frame()
+
+    def exit(self):
+        sys.exit("Program terminated...")
     
 
 def create_gui(s="App"):
-    match(s):
-        case "Node":
-            app_node = Node()
-            app_node.mainloop()
-        case "Member":
-            app_member = Member()
-            app_member.mainloop()    
-        case "Load":
-            app_load = Load()
-            app_load.mainloop()
-        case _:
-            app = App()
-            app.mainloop()
+    app = App()
+
+    app.mainloop()
