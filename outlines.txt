@@ -1,0 +1,2 @@
+1 - Build the GUI for the program
+    * Need to learn customTkinter
