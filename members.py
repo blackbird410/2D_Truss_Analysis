@@ -35,7 +35,6 @@ class MemberFrame(customtkinter.CTkFrame):
 
         self.save.grid(row=5, column=0, columnspan=2, padx=10, pady=10)
 
-
     def save_member(self):
         print("Saving member...")
         s_node = self.input_1.get()
@@ -44,7 +43,9 @@ class MemberFrame(customtkinter.CTkFrame):
         yg_mod = self.input_4.get()
         inertia = self.input_5.get()
 
-        print(f"Start: {s_node}\nEnd: {e_node}\nArea: {s_area}\nE: {yg_mod}\nI: {inertia}")
+        print(
+            f"Start: {s_node}\nEnd: {e_node}\nArea: {s_area}\nE: {yg_mod}\nI: {inertia}"
+        )
 
 
 class Member(customtkinter.CTkFrame):

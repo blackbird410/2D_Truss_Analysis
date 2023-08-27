@@ -1,2 +1,4 @@
 1 - Build the GUI for the program
-    * Need to learn customTkinter
+    * Used customTkinter
+2- Create a database with sqlite
+    * Connect the database with the GUI

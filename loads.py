@@ -27,7 +27,6 @@ class LoadFrame(customtkinter.CTkFrame):
 
         self.save.grid(row=3, column=0, columnspan=2, padx=10, pady=10)
 
-
     def save_load(self):
         print("Saving load ...")
         n = self.input_1.get()
@@ -35,7 +34,7 @@ class LoadFrame(customtkinter.CTkFrame):
         y = self.input_3.get()
         print(f"Node: {n} | X: {x} | Y: {y}")
 
-    
+
 class Load(customtkinter.CTkFrame):
     def __init__(self, master):
         super().__init__(master)
