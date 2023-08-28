@@ -1,13 +1,21 @@
 import customtkinter
 import sys
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from nodes import *
 from members import *
 from loads import *
 
 
+class PLotFrame(customtkinter.CTkFrame):
+    def __init__(self, master):
+        super().__init__(master)
+
+
 class OptionFrame(customtkinter.CTkFrame):
     def __init__(self, master):
         super().__init__(master)
+        self.root = master
 
 
 class ButtonFrame(customtkinter.CTkFrame):
@@ -20,14 +28,15 @@ class ButtonFrame(customtkinter.CTkFrame):
             self, text="Member", command=master.add_members
         )
         self.b_3 = customtkinter.CTkButton(self, text="Load", command=master.add_loads)
-        self.b_4 = customtkinter.CTkButton(self, text="Analyze", command=master.analyze)
-        self.b_5 = customtkinter.CTkButton(
+        self.b_4 = customtkinter.CTkButton(self, text="Data", command=master.show_data)
+        self.b_5 = customtkinter.CTkButton(self, text="Analyze", command=master.analyze)
+        self.b_6 = customtkinter.CTkButton(
             self, text="Results", command=master.get_results
         )
-        self.b_6 = customtkinter.CTkButton(
+        self.b_7 = customtkinter.CTkButton(
             self, text="Deformations", command=master.show_deformation
         )
-        self.b_7 = customtkinter.CTkButton(
+        self.b_8 = customtkinter.CTkButton(
             self, text="Exit", fg_color="red", command=master.exit
         )
 
@@ -38,9 +47,7 @@ class ButtonFrame(customtkinter.CTkFrame):
         self.b_5.grid(row=4, column=0, padx=20, pady=10)
         self.b_6.grid(row=5, column=0, padx=20, pady=10)
         self.b_7.grid(row=6, column=0, padx=20, pady=10)
-
-    def button_callback(self):
-        print("Button pressed")
+        self.b_8.grid(row=7, column=0, padx=20, pady=10)
 
 
 class App(customtkinter.CTk):
@@ -48,16 +55,19 @@ class App(customtkinter.CTk):
         super().__init__()
 
         self.title("2D Truss Analysis")
-        self.geometry("950x350")
+        self.geometry("1030x400")
 
         # Create the frame of the buttons
         self.button_frame = ButtonFrame(self)
         self.button_frame.grid(row=0, column=0, padx=10, pady=10)
 
-        # Creating a frame for the canvas
-        self.canvas = customtkinter.CTkCanvas(self, width="420", bg="lightgrey")
-        self.canvas.grid(row=0, column=1, padx=10, pady=10, sticky="nsew")
-        self.canvas.columnconfigure(0, weight=1)
+        self.plot_frame = PLotFrame(self)
+        self.plot_frame.grid(row=0, column=1, padx=10, pady=10, sticky="nsew")
+        self.plot_frame.columnconfigure(0, weight=1)
+
+        # Display the plot
+        self.fig, self.ax = plt.subplots()
+        self.plot_data()
 
         # Creating a frame for the options
         self.option_frame = OptionFrame(self)
@@ -87,6 +97,10 @@ class App(customtkinter.CTk):
         load_frame = Load(self.option_frame)
         load_frame.grid(row=0, column=1, padx=10, pady=10)
 
+    def show_data(self):
+        print("Showing database")
+        self.destroy_frame()
+
     def analyze(self):
         self.destroy_frame()
 
@@ -99,7 +113,37 @@ class App(customtkinter.CTk):
     def exit(self):
         sys.exit("Program terminated...")
 
+    def plot_data(self):
+        # Clean the plot frame
+        self.fig.clf()
+        self.ax.cla()
+        self.fig, self.ax = plt.subplots()
 
+        # Parse the database to collect the data
+        db = SQL("sqlite:///data.db")
+        # TODO: Create an sql query to get the coordinates of the start node and end node  for each members
+        members = db.execute("SELECT start_node, end_node FROM members;")
+        nodes_coords = db.execute("SELECT id, x, y FROM nodes;")
+
+        x_coords = []
+        y_coords = []
+
+        for member in members:
+            start_node_pos = member["start_node"] - 1 
+            end_node_pos = member["end_node"] - 1
+            x_coords.append(nodes_coords[start_node_pos]["x"])
+            y_coords.append(nodes_coords[start_node_pos]["y"])
+            x_coords.append(nodes_coords[end_node_pos]["x"])
+            y_coords.append(nodes_coords[end_node_pos]["y"])
+        
+        # self.fig.title
+        self.fig.set_figwidth(5)
+        self.fig.set_figheight(3.8)
+        self.ax.plot(x_coords, y_coords)
+        self.canvas = FigureCanvasTkAgg(self.fig, self.plot_frame)
+        self.canvas.get_tk_widget().grid(row=0, column=0)
+
+       
 def create_gui():
     app = App()
     app.mainloop()

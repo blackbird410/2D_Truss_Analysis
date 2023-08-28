@@ -49,6 +49,7 @@ class MemberFrame(customtkinter.CTkFrame):
             db.execute("""INSERT INTO members (
                     start_node, end_node, section_area, young_mod, inertia)
                     VALUES (?, ?, ?, ?, ?);""", s_node, e_node, s_area, yg_mod, inertia)
+            self.master.master.root.plot_data()
         except ValueError:
             CTkMessagebox(title="Error", message="Wrong imput!!!", icon="cancel")        
         self.clear()

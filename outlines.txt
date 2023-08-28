@@ -2,3 +2,5 @@
     * Used customTkinter
 2- Create a database with sqlite
     * Connect the database with the GUI
+3- Parse the database and plot the drawing of the truss while user are inputing data
+    * Create a plot function
