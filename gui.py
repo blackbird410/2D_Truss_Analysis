@@ -146,20 +146,21 @@ class App(customtkinter.CTk):
 
         # Parse the database to collect the data
         db = SQL("sqlite:///data.db")
-        # TODO: Create an sql query to get the coordinates of the start node and end node  for each members
-        members = db.execute("SELECT start_node, end_node FROM members;")
-        nodes_coords = db.execute("SELECT id, x, y FROM nodes;")
+        
+        members = db.execute(
+            """SELECT m.id, start_node, end_node, n1.x AS x_i, n1.y AS y_i, n2.x AS x_j, n2.y AS y_j FROM members m
+            JOIN nodes n1 ON n1.id=m.start_node
+            JOIN nodes n2 ON n2.id=m.end_node;"""
+            )
 
         x_coords = []
         y_coords = []
 
         for member in members:
-            start_node_pos = member["start_node"] - 1 
-            end_node_pos = member["end_node"] - 1
-            x_coords.append(nodes_coords[start_node_pos]["x"])
-            y_coords.append(nodes_coords[start_node_pos]["y"])
-            x_coords.append(nodes_coords[end_node_pos]["x"])
-            y_coords.append(nodes_coords[end_node_pos]["y"])
+            x_coords.append(member["x_i"])
+            y_coords.append(member["y_i"])
+            x_coords.append(member["x_j"])
+            y_coords.append(member["y_j"])
         
         # self.fig.title
         self.fig.set_figwidth(5.5)

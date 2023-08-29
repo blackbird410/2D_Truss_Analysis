@@ -5,3 +5,4 @@
 3- Parse the database and plot the drawing of the truss while user are inputing data
     * Create a plot function
 4- Create a frame that allows the user to see the database
+5- Create computational function for the analysis of the truss
