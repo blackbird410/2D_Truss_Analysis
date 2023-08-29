@@ -61,11 +61,11 @@ def check_stability(m, r, j):
     """ "Verify the internal stability of a truss"""
 
     try:
-        if (m > 3 and r > 2 and j > 2) and (m + r) <= 2 * j:
-            return False
+        if (m > 3 and r > 2 and j > 2) and (m + r) >= 2 * j:
+            return True
     except ValueError:
-        sys.exit("Input error")
-    return True
+        ...
+    return False
 
 
 if __name__ == "__main__":
