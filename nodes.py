@@ -1,6 +1,6 @@
 import customtkinter
 from cs50 import SQL
-from CTkMessagebox import CTkMessagebox 
+from CTkMessagebox import CTkMessagebox
 
 
 class NodeFrame(customtkinter.CTkFrame):
@@ -40,7 +40,7 @@ class NodeFrame(customtkinter.CTkFrame):
         if not x or not y or not r:
             CTkMessagebox(title="Info", message="Please fill all the input fields!!!")
         else:
-            match(r):
+            match (r):
                 case "X":
                     rx = 1
                     ry = 0
@@ -50,26 +50,29 @@ class NodeFrame(customtkinter.CTkFrame):
                 case "XY":
                     rx = 1
                     ry = 1
-                case _ :
+                case _:
                     rx = 0
                     ry = 0
 
             db = SQL("sqlite:///data.db")
             try:
-                db.execute("INSERT INTO nodes (x, y, rx, ry) VALUES (?, ?, ?, ?);", x, y, rx, ry)
+                db.execute(
+                    "INSERT INTO nodes (x, y, rx, ry) VALUES (?, ?, ?, ?);",
+                    x,
+                    y,
+                    rx,
+                    ry,
+                )
             except ValueError:
                 # Show an error message
                 CTkMessagebox(title="Error", message="Wrong input!!!", icon="cancel")
 
             self.clear()
 
-
     def clear(self):
         self.input_1.delete(0, customtkinter.END)
         self.input_2.delete(0, customtkinter.END)
-        self.reaction_var.set("Reaction") 
-
-
+        self.reaction_var.set("Reaction")
 
 
 class Node(customtkinter.CTkFrame):

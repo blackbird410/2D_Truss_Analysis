@@ -78,7 +78,9 @@ class App(customtkinter.CTk):
 
         # Creating a frame for the options
         self.option_frame = OptionFrame(self)
-        self.option_frame.grid(row=1, column=0, columnspan=2, padx=10, pady=10, sticky="nsew")
+        self.option_frame.grid(
+            row=1, column=0, columnspan=2, padx=10, pady=10, sticky="nsew"
+        )
         self.option_frame.grid_columnconfigure(1, weight=1)
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(1, weight=1)
@@ -122,19 +124,30 @@ class App(customtkinter.CTk):
         self.destroy_frame()
 
     def exit(self):
-        msg = CTkMessagebox(title="Exit?", message="Do you want to close the program?",
-                        icon="question", option_1="Cancel", option_2="No", option_3="Yes")
+        msg = CTkMessagebox(
+            title="Exit?",
+            message="Do you want to close the program?",
+            icon="question",
+            option_1="Cancel",
+            option_2="No",
+            option_3="Yes",
+        )
         response = msg.get()
-        
-        if response=="Yes":
-            self.destroy()       
+
+        if response == "Yes":
+            self.destroy()
         sys.exit("Program terminated...")
 
     def reset(self):
         if os.path.exists("data.db"):
-            response = CTkMessagebox(self, icon="question", title="Reset database", 
-                          message="Are you sure you want to reset the database?",
-                          option_1="No", option_2="Yes")
+            response = CTkMessagebox(
+                self,
+                icon="question",
+                title="Reset database",
+                message="Are you sure you want to reset the database?",
+                option_1="No",
+                option_2="Yes",
+            )
             if response.get() == "Yes":
                 # os.remove("data.db")
                 CTkMessagebox(title="Info", message="DATABASE ERASED")
@@ -147,12 +160,12 @@ class App(customtkinter.CTk):
 
         # Parse the database to collect the data
         db = SQL("sqlite:///data.db")
-        
+
         members = db.execute(
             """SELECT m.id, start_node, end_node, n1.x AS x_i, n1.y AS y_i, n2.x AS x_j, n2.y AS y_j FROM members m
             JOIN nodes n1 ON n1.id=m.start_node
             JOIN nodes n2 ON n2.id=m.end_node;"""
-            )
+        )
 
         x_coords = []
         y_coords = []
@@ -162,7 +175,7 @@ class App(customtkinter.CTk):
             y_coords.append(member["y_i"])
             x_coords.append(member["x_j"])
             y_coords.append(member["y_j"])
-        
+
         # self.fig.title
         self.fig.set_figwidth(5.5)
         self.fig.set_figheight(3.8)
@@ -170,7 +183,7 @@ class App(customtkinter.CTk):
         self.canvas = FigureCanvasTkAgg(self.fig, self.plot_frame)
         self.canvas.get_tk_widget().grid(row=0, column=0)
 
-       
+
 def create_gui():
     app = App()
     app.mainloop()

@@ -1,6 +1,6 @@
 import customtkinter
 from cs50 import SQL
-from CTkMessagebox import CTkMessagebox 
+from CTkMessagebox import CTkMessagebox
 
 
 class LoadFrame(customtkinter.CTkFrame):
@@ -40,25 +40,38 @@ class LoadFrame(customtkinter.CTkFrame):
         # Check if the node chosen does not have a support reaction already applied there
         check = db.execute(
             """SELECT COUNT(*) AS C  FROM nodes
-                WHERE id=? AND (rx=1 OR ry=1);""", n)[0]["C"]
-        
+                WHERE id=? AND (rx=1 OR ry=1);""",
+            n,
+        )[0]["C"]
+
         if check != 0:
-            CTkMessagebox(title="Info", message="You cannot apply load to a node where there is a support reaction", icon="cancel")
+            CTkMessagebox(
+                title="Info",
+                message="You cannot apply load to a node where there is a support reaction",
+                icon="cancel",
+            )
         elif (not n) or (not x) or (not y):
-            CTkMessagebox(title="Info", message="Please fill all the input fields!!!", icon="cancel")
+            CTkMessagebox(
+                title="Info",
+                message="Please fill all the input fields!!!",
+                icon="cancel",
+            )
         else:
             try:
-                db.execute("""INSERT INTO loads (x_load, y_load, node) VALUES (?, ?, ?);""", x, y, n)
+                db.execute(
+                    """INSERT INTO loads (x_load, y_load, node) VALUES (?, ?, ?);""",
+                    x,
+                    y,
+                    n,
+                )
             except ValueError:
                 CTkMessagebox(title="Error", message="Wrong input!!!", icon="cancel")
             self.clear()
-
 
     def clear(self):
         self.input_1.delete(0, customtkinter.END)
         self.input_2.delete(0, customtkinter.END)
         self.input_3.delete(0, customtkinter.END)
-
 
 
 class Load(customtkinter.CTkFrame):

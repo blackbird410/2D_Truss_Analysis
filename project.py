@@ -57,5 +57,16 @@ def create_connection(db_file):
             conn.close()
 
 
+def check_stability(m, r, j):
+    """ "Verify the internal stability of a truss"""
+
+    try:
+        if (m > 3 and r > 2 and j > 2) and (m + r) <= 2 * j:
+            return False
+    except ValueError:
+        sys.exit("Input error")
+    return True
+
+
 if __name__ == "__main__":
     main()

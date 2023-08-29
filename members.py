@@ -1,6 +1,7 @@
 import customtkinter
 from cs50 import SQL
-from CTkMessagebox import CTkMessagebox 
+from CTkMessagebox import CTkMessagebox
+
 
 class MemberFrame(customtkinter.CTkFrame):
     def __init__(self, master):
@@ -49,14 +50,20 @@ class MemberFrame(customtkinter.CTkFrame):
             CTkMessagebox(title="Info", message="Please fill all the input fields!!!")
         else:
             try:
-                db.execute("""INSERT INTO members (
+                db.execute(
+                    """INSERT INTO members (
                         start_node, end_node, section_area, young_mod, inertia)
-                        VALUES (?, ?, ?, ?, ?);""", s_node, e_node, s_area, yg_mod, inertia)
+                        VALUES (?, ?, ?, ?, ?);""",
+                    s_node,
+                    e_node,
+                    s_area,
+                    yg_mod,
+                    inertia,
+                )
                 self.master.master.root.plot_data()
             except ValueError:
-                CTkMessagebox(title="Error", message="Wrong imput!!!", icon="cancel")        
+                CTkMessagebox(title="Error", message="Wrong imput!!!", icon="cancel")
             self.clear()
-        
 
     def clear(self):
         self.input_1.delete(0, customtkinter.END)
