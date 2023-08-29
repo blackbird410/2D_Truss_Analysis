@@ -61,15 +61,16 @@ class App(customtkinter.CTk):
 
         self.title("2D Truss Analysis")
         self.geometry("800x680")
-        self.resizable(False, False)
+        self.minsize(800, 680)
+        self.grid_columnconfigure(1, weight=1)
 
         # Create the frame of the buttons
         self.button_frame = ButtonFrame(self)
         self.button_frame.grid(row=0, column=0, padx=10, pady=10)
 
         self.plot_frame = PLotFrame(self)
-        self.plot_frame.grid(row=0, column=1, padx=10, pady=10, sticky="nsew")
-        self.plot_frame.columnconfigure(0, weight=1)
+        self.plot_frame.grid(row=0, column=1, padx=10, pady=10)
+        # self.plot_frame.columnconfigure(0, weight=1)
 
         # Display the plot
         self.fig, self.ax = plt.subplots()
@@ -81,7 +82,7 @@ class App(customtkinter.CTk):
         self.option_frame.grid_columnconfigure(1, weight=1)
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(1, weight=1)
-        # self.option_frame.configure(fg_color="transparent")
+        self.option_frame.configure(fg_color="transparent")
 
     def destroy_frame(self):
         """Remove the widget in the third column of the main window for adding new ones."""

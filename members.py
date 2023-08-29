@@ -45,14 +45,17 @@ class MemberFrame(customtkinter.CTkFrame):
         inertia = self.input_5.get()
 
         db = SQL("sqlite:///data.db")
-        try:
-            db.execute("""INSERT INTO members (
-                    start_node, end_node, section_area, young_mod, inertia)
-                    VALUES (?, ?, ?, ?, ?);""", s_node, e_node, s_area, yg_mod, inertia)
-            self.master.master.root.plot_data()
-        except ValueError:
-            CTkMessagebox(title="Error", message="Wrong imput!!!", icon="cancel")        
-        self.clear()
+        if not s_node or not e_node or not s_area or not yg_mod or not inertia:
+            CTkMessagebox(title="Info", message="Please fill all the input fields!!!")
+        else:
+            try:
+                db.execute("""INSERT INTO members (
+                        start_node, end_node, section_area, young_mod, inertia)
+                        VALUES (?, ?, ?, ?, ?);""", s_node, e_node, s_area, yg_mod, inertia)
+                self.master.master.root.plot_data()
+            except ValueError:
+                CTkMessagebox(title="Error", message="Wrong imput!!!", icon="cancel")        
+            self.clear()
         
 
     def clear(self):

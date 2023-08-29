@@ -43,9 +43,9 @@ class LoadFrame(customtkinter.CTkFrame):
                 WHERE id=? AND (rx=1 OR ry=1);""", n)[0]["C"]
         
         if check != 0:
-            CTkMessagebox(title="Error", message="You cannot apply load to a node where there is a support reaction", icon="cancel")
+            CTkMessagebox(title="Info", message="You cannot apply load to a node where there is a support reaction", icon="cancel")
         elif (not n) or (not x) or (not y):
-            CTkMessagebox(title="Info", message="All inputs must be filled", icon="cancel")
+            CTkMessagebox(title="Info", message="Please fill all the input fields!!!", icon="cancel")
         else:
             try:
                 db.execute("""INSERT INTO loads (x_load, y_load, node) VALUES (?, ?, ?);""", x, y, n)

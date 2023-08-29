@@ -6,3 +6,4 @@
     * Create a plot function
 4- Create a frame that allows the user to see the database
 5- Create computational function for the analysis of the truss
+    * Understand the use of stiffness matrixes
