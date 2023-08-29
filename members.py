@@ -23,18 +23,18 @@ class MemberFrame(customtkinter.CTkFrame):
 
         # Display the input elements
         self.label_1.grid(row=0, column=0, padx=10, pady=10)
-        self.label_2.grid(row=1, column=0, padx=10, pady=10)
-        self.label_3.grid(row=2, column=0, padx=10, pady=10)
-        self.label_4.grid(row=3, column=0, padx=10, pady=10)
-        self.label_5.grid(row=4, column=0, padx=10, pady=10)
+        self.label_2.grid(row=0, column=3, padx=10, pady=10)
+        self.label_3.grid(row=1, column=0, padx=10, pady=10)
+        self.label_4.grid(row=1, column=3, padx=10, pady=10)
+        self.label_5.grid(row=1, column=5, padx=10, pady=10)
 
         self.input_1.grid(row=0, column=1, padx=10, pady=10)
-        self.input_2.grid(row=1, column=1, padx=10, pady=10)
-        self.input_3.grid(row=2, column=1, padx=10, pady=10)
-        self.input_4.grid(row=3, column=1, padx=10, pady=10)
-        self.input_5.grid(row=4, column=1, padx=10, pady=10)
+        self.input_2.grid(row=0, column=4, padx=10, pady=10)
+        self.input_3.grid(row=1, column=1, padx=10, pady=10)
+        self.input_4.grid(row=1, column=4, padx=10, pady=10)
+        self.input_5.grid(row=1, column=6, padx=10, pady=10)
 
-        self.save.grid(row=5, column=0, columnspan=2, padx=10, pady=10)
+        self.save.grid(row=2, column=0, columnspan=6, padx=10, pady=10)
 
     def save_member(self):
         print("Saving member...")

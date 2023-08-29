@@ -1,10 +1,11 @@
 import customtkinter
-import sys
+import sys, os
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from nodes import *
 from members import *
 from loads import *
+from data import *
 
 
 class PLotFrame(customtkinter.CTkFrame):
@@ -12,7 +13,7 @@ class PLotFrame(customtkinter.CTkFrame):
         super().__init__(master)
 
 
-class OptionFrame(customtkinter.CTkFrame):
+class OptionFrame(customtkinter.CTkScrollableFrame):
     def __init__(self, master):
         super().__init__(master)
         self.root = master
@@ -39,6 +40,9 @@ class ButtonFrame(customtkinter.CTkFrame):
         self.b_8 = customtkinter.CTkButton(
             self, text="Exit", fg_color="red", command=master.exit
         )
+        self.b_9 = customtkinter.CTkButton(
+            self, text="Reset", fg_color="red", command=master.reset
+        )
 
         self.b_1.grid(row=0, column=0, padx=20, pady=10)
         self.b_2.grid(row=1, column=0, padx=20, pady=10)
@@ -48,6 +52,7 @@ class ButtonFrame(customtkinter.CTkFrame):
         self.b_6.grid(row=5, column=0, padx=20, pady=10)
         self.b_7.grid(row=6, column=0, padx=20, pady=10)
         self.b_8.grid(row=7, column=0, padx=20, pady=10)
+        self.b_9.grid(row=8, column=0, padx=20, pady=10)
 
 
 class App(customtkinter.CTk):
@@ -55,7 +60,8 @@ class App(customtkinter.CTk):
         super().__init__()
 
         self.title("2D Truss Analysis")
-        self.geometry("1030x400")
+        self.geometry("800x680")
+        self.resizable(False, False)
 
         # Create the frame of the buttons
         self.button_frame = ButtonFrame(self)
@@ -71,9 +77,11 @@ class App(customtkinter.CTk):
 
         # Creating a frame for the options
         self.option_frame = OptionFrame(self)
-        self.option_frame.grid(row=0, column=2, padx=10, pady=10, sticky="nsew")
+        self.option_frame.grid(row=1, column=0, columnspan=2, padx=10, pady=10, sticky="nsew")
+        self.option_frame.grid_columnconfigure(1, weight=1)
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(1, weight=1)
         # self.option_frame.configure(fg_color="transparent")
-        self.rowconfigure(index=2, weight=1)
 
     def destroy_frame(self):
         """Remove the widget in the third column of the main window for adding new ones."""
@@ -98,8 +106,10 @@ class App(customtkinter.CTk):
         load_frame.grid(row=0, column=1, padx=10, pady=10)
 
     def show_data(self):
-        print("Showing database")
         self.destroy_frame()
+        data_frame = Data(self.option_frame)
+        data_frame.grid(row=0, column=1, padx=10, pady=10)
+        data_frame.grid_columnconfigure(minsize=100, index=0, weight=1)
 
     def analyze(self):
         self.destroy_frame()
@@ -112,6 +122,15 @@ class App(customtkinter.CTk):
 
     def exit(self):
         sys.exit("Program terminated...")
+
+    def reset(self):
+        if os.path.exists("data.db"):
+            response = CTkMessagebox(self, icon="question", title="Reset database", 
+                          message="Are you sure you want to reset the database?",
+                          option_1="No", option_2="Yes")
+            if response.get() == "Yes":
+                # os.remove("data.db")
+                CTkMessagebox(title="Info", message="DATABASE ERASED")
 
     def plot_data(self):
         # Clean the plot frame
@@ -137,7 +156,7 @@ class App(customtkinter.CTk):
             y_coords.append(nodes_coords[end_node_pos]["y"])
         
         # self.fig.title
-        self.fig.set_figwidth(5)
+        self.fig.set_figwidth(5.5)
         self.fig.set_figheight(3.8)
         self.ax.plot(x_coords, y_coords)
         self.canvas = FigureCanvasTkAgg(self.fig, self.plot_frame)
