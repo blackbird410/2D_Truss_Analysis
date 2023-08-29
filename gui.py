@@ -121,6 +121,12 @@ class App(customtkinter.CTk):
         self.destroy_frame()
 
     def exit(self):
+        msg = CTkMessagebox(title="Exit?", message="Do you want to close the program?",
+                        icon="question", option_1="Cancel", option_2="No", option_3="Yes")
+        response = msg.get()
+        
+        if response=="Yes":
+            self.destroy()       
         sys.exit("Program terminated...")
 
     def reset(self):
