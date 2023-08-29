@@ -34,13 +34,24 @@ class LoadFrame(customtkinter.CTkFrame):
         n = self.input_1.get()
         x = self.input_2.get()
         y = self.input_3.get()
-        
+
         db = SQL("sqlite:///data.db")
-        try:
-            db.execute("""INSERT INTO loads (x_load, y_load, node) VALUES (?, ?, ?);""", x, y, n)
-        except ValueError:
-            CTkMessagebox(title="Error", message="Wrong imput!!!", icon="cancel")
-        self.clear()
+
+        # Check if the node chosen does not have a support reaction already applied there
+        check = db.execute(
+            """SELECT COUNT(*) AS C  FROM nodes
+                WHERE id=? AND (rx=1 OR ry=1);""", n)[0]["C"]
+        
+        if check != 0:
+            CTkMessagebox(title="Error", message="You cannot apply load to a node where there is a support reaction", icon="cancel")
+        elif (not n) or (not x) or (not y):
+            CTkMessagebox(title="Info", message="All inputs must be filled", icon="cancel")
+        else:
+            try:
+                db.execute("""INSERT INTO loads (x_load, y_load, node) VALUES (?, ?, ?);""", x, y, n)
+            except ValueError:
+                CTkMessagebox(title="Error", message="Wrong input!!!", icon="cancel")
+            self.clear()
 
 
     def clear(self):

@@ -17,30 +17,30 @@ def create_database():
     db = SQL("sqlite:///data.db")
     db.execute(
         """CREATE TABLE IF NOT EXISTS nodes (
-            id INTEGER PRIMARY KEY NOT NULL UNIQUE, 
-            x INTEGER NOT NULL, 
-            y INTEGER NOT NULL, 
-            rx INTEGER NOT NULL, 
-            ry INTEGER NOT NULL)"""
+                id INTEGER PRIMARY KEY NOT NULL UNIQUE, 
+                x INTEGER NOT NULL, 
+                y INTEGER NOT NULL, 
+                rx INTEGER NOT NULL, 
+                ry INTEGER NOT NULL);"""
     )
     db.execute(
         """CREATE TABLE IF NOT EXISTS members (
-            id INTEGER PRIMARY KEY NOT NULL, 
-            start_node INTEGER NOT NULL, 
-            end_node INTEGER NOT NULL, 
-            section_area FLOAT NOT NULL, 
-            young_mod FLOAT NOT NULL, 
-            inertia FLOAT NOT NULL, 
-            FOREIGN KEY(start_node) REFERENCES nodes (id), 
-            FOREIGN KEY(end_node) REFERENCES nodes (id))"""
+                id INTEGER PRIMARY KEY NOT NULL, 
+                start_node INTEGER NOT NULL, 
+                end_node INTEGER NOT NULL, 
+                section_area FLOAT NOT NULL, 
+                young_mod FLOAT NOT NULL, 
+                inertia FLOAT NOT NULL, 
+                FOREIGN KEY(start_node) REFERENCES nodes (id), 
+                FOREIGN KEY(end_node) REFERENCES nodes (id));"""
     )
     db.execute(
         """CREATE TABLE IF NOT EXISTS loads (
-            id INTEGER PRIMARY KEY NOT NULL, 
-            x_load FLOAT NOT NULL, 
-            y_load FLOAT NOT NULL, 
-            node INTEGER NOT NULL, 
-            FOREIGN KEY(NODE) REFERENCES nodes(id))"""
+                id INTEGER PRIMARY KEY NOT NULL, 
+                x_load FLOAT NOT NULL, 
+                y_load FLOAT NOT NULL, 
+                node INTEGER NOT NULL UNIQUE, 
+                FOREIGN KEY(NODE) REFERENCES nodes(id));"""
     )
 
 
