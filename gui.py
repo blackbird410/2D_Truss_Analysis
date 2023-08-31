@@ -114,8 +114,82 @@ class App(customtkinter.CTk):
         data_frame.grid(row=0, column=1, padx=10, pady=10)
         data_frame.grid_columnconfigure(minsize=100, index=0, weight=1)
 
+    @classmethod
+    def check_stability(cls, m, r, j):
+        """ "Verify the internal stability of a truss"""
+
+        try:
+            if (m > 1 and r > 2 and j > 2) and (m + r) >= 2 * j:
+                return True
+            else:
+                return False
+        except ValueError:
+            ...
+        return False
+    
+
+    def assign_dof_numbers(self):
+        """Assign a number to a Degree Of Freedom by comparing the displacements at 
+        each DOF (unknown(rx=0 || ry=0) or known(rx=1 || ry=1))."""
+
+        try:
+            # Select the data of the nodes from the database by sorting them by rx and ry
+            db = SQL("sqlite:///data.db")
+            
+            # Check if this method has already been executed and the table already created
+            test = db.execute("""SELECT name FROM sqlite_master WHERE type="table" AND name="dof_nodes";""")
+            if test:
+                # Remove the old table
+                db.execute("DROP TABLE dof_nodes")
+            
+            nodes = db.execute("SELECT * FROM nodes ORDER BY rx, ry;")
+
+            # Create a new sql table with id numbers for the nodes
+            db.execute(
+                """CREATE TABLE IF NOT EXISTS dof_nodes (
+                    id INTEGER PRIMARY KEY NOT NULL,
+                    node INTEGER NOT NULL,
+                    axis TEXT NOT NULL,
+                    FOREIGN KEY(node) REFERENCES nodes(id));"""
+            )
+
+            # Parse the data of the nodes while inserting each nodes into the new table by comparing rx an ry
+            for node in nodes:
+                if node["rx"] == 1 and node["ry"] == 0:
+                    db.execute("INSERT INTO dof_nodes (node, axis) VALUES (?, ?);", node["id"], "y")
+                    db.execute("INSERT INTO dof_nodes (node, axis) VALUES (?, ?);", node["id"], "x")
+                else:
+                    db.execute("INSERT INTO dof_nodes (node, axis) VALUES (?, ?);", node["id"], "x")
+                    db.execute("INSERT INTO dof_nodes (node, axis) VALUES (?, ?);", node["id"], "y")
+            return True
+        except:
+            return False
+
+
     def analyze(self):
         self.destroy_frame()
+
+        # Query the numbers of nodes, members and support reactions
+        db = SQL("sqlite:///data.db")
+        nodes = db.execute("SELECT * FROM nodes;")
+        n_nodes = 0
+        n_reactions = 0
+        for node in nodes:
+            if node["rx"] == 1:
+                n_reactions += 1
+            if node["ry"] == 1:
+                n_reactions += 1
+            n_nodes += 1
+        n_members = db.execute("SELECT COUNT(*) AS n_M FROM members;")[0]["n_M"]
+
+        # Check the stability of the truss
+        if self.check_stability(n_members, n_reactions, n_nodes):
+            # Assign the degree of freedom the numbers by order
+            response = self.assign_dof_numbers()
+            if response:
+                print("Task completed...")
+        else:
+            CTkMessagebox(title="Error", message="Error encountered. Please check your inputs.", option_1="cancel")
 
     def get_results(self):
         self.destroy_frame()
@@ -163,8 +237,8 @@ class App(customtkinter.CTk):
 
         members = db.execute(
             """SELECT m.id, start_node, end_node, n1.x AS x_i, n1.y AS y_i, n2.x AS x_j, n2.y AS y_j FROM members m
-            JOIN nodes n1 ON n1.id=m.start_node
-            JOIN nodes n2 ON n2.id=m.end_node;"""
+                JOIN nodes n1 ON n1.id=m.start_node
+                JOIN nodes n2 ON n2.id=m.end_node;"""
         )
 
         x_coords = []

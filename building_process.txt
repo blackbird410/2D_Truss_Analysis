@@ -7,4 +7,8 @@
 4- Create a frame that allows the user to see the database
 5- Create computational function for the analysis of the truss
     * Verify the internal stability of the truss
+    * Find the degrees of freedom
+    * Identify the known displacements(d = 0 in support reactions) by the highest number 
+        to partitionate the structure stiffness matrix later
+    * Establish member stiffness matrixes for each members
     * Understand the use of stiffness matrixes
