@@ -1,8 +1,8 @@
 ## Required Libraries
-- customtkinter
-- cs50
-- sqlite3
-- CTkMessagebox
-- os
-- sys
-- numpy
+customtkinter
+cs50
+sqlite3
+CTkMessagebox
+os
+sys
+numpy

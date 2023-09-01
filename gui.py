@@ -1,11 +1,13 @@
 import customtkinter
 import sys, os
 import matplotlib.pyplot as plt
+import numpy as np
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from nodes import *
 from members import *
 from loads import *
 from data import *
+from math import sqrt, pow
 
 
 class PLotFrame(customtkinter.CTkFrame):
@@ -126,22 +128,23 @@ class App(customtkinter.CTk):
         except ValueError:
             ...
         return False
-    
 
     def assign_dof_numbers(self):
-        """Assign a number to a Degree Of Freedom by comparing the displacements at 
+        """Assign a number to a Degree Of Freedom by comparing the displacements at
         each DOF (unknown(rx=0 || ry=0) or known(rx=1 || ry=1))."""
 
         try:
             # Select the data of the nodes from the database by sorting them by rx and ry
             db = SQL("sqlite:///data.db")
-            
+
             # Check if this method has already been executed and the table already created
-            test = db.execute("""SELECT name FROM sqlite_master WHERE type="table" AND name="dof_nodes";""")
+            test = db.execute(
+                """SELECT name FROM sqlite_master WHERE type="table" AND name="dof_nodes";"""
+            )
             if test:
                 # Remove the old table
                 db.execute("DROP TABLE dof_nodes")
-            
+
             nodes = db.execute("SELECT * FROM nodes ORDER BY rx, ry;")
 
             # Create a new sql table with id numbers for the nodes
@@ -156,15 +159,118 @@ class App(customtkinter.CTk):
             # Parse the data of the nodes while inserting each nodes into the new table by comparing rx an ry
             for node in nodes:
                 if node["rx"] == 1 and node["ry"] == 0:
-                    db.execute("INSERT INTO dof_nodes (node, axis) VALUES (?, ?);", node["id"], "y")
-                    db.execute("INSERT INTO dof_nodes (node, axis) VALUES (?, ?);", node["id"], "x")
+                    db.execute(
+                        "INSERT INTO dof_nodes (node, axis) VALUES (?, ?);",
+                        node["id"],
+                        "y",
+                    )
+                    db.execute(
+                        "INSERT INTO dof_nodes (node, axis) VALUES (?, ?);",
+                        node["id"],
+                        "x",
+                    )
                 else:
-                    db.execute("INSERT INTO dof_nodes (node, axis) VALUES (?, ?);", node["id"], "x")
-                    db.execute("INSERT INTO dof_nodes (node, axis) VALUES (?, ?);", node["id"], "y")
+                    db.execute(
+                        "INSERT INTO dof_nodes (node, axis) VALUES (?, ?);",
+                        node["id"],
+                        "x",
+                    )
+                    db.execute(
+                        "INSERT INTO dof_nodes (node, axis) VALUES (?, ?);",
+                        node["id"],
+                        "y",
+                    )
             return True
         except:
             return False
 
+    def generate_msm(self):
+        """Generates the stiffness matrices of each members of the truss."""
+
+        # Query the members, nodes and dof_nodes databases
+        db = SQL("sqlite:///data.db")
+        members = db.execute(
+            """SELECT m.id, 
+                    start_node, 
+                    end_node, 
+                    section_area AS A, 
+                    young_mod AS E, 
+                    inertia AS I,  
+                    n1.x AS x_i, 
+                    n1.y AS y_i, 
+                    n2.x AS x_j, 
+                    n2.y AS y_j 
+                FROM members m
+                JOIN nodes n1 ON n1.id=m.start_node
+                JOIN nodes n2 ON n2.id=m.end_node;"""
+        )
+        # nodes = db.execute("SELECT * FROM nodes")
+        # dof_nodes = db.execute("SELECT * FROM dof_nodes")
+
+        # Determine the stiffness matrix for each members and append the to a list
+        matrices = []
+        for member in members:
+            # Determine the length, lambda_x and lambda_y
+            length = sqrt(
+                pow((member["x_j"] - member["x_i"]), 2)
+                + pow((member["y_j"] - member["y_i"]), 2)
+            )
+
+            try:
+                lambda_x = (member["x_j"] - member["x_i"]) / length
+                lambda_y = (member["y_j"] - member["y_i"]) / length
+            except ZeroDivisionError:
+                CTkMessagebox(
+                    title="Error",
+                    message="One of the members length is null, please restart analysis by inputing new coordinates.",
+                )
+
+            # Write the matrix form with the lambdas
+            msm = [
+                [
+                    pow(lambda_x, 2),
+                    lambda_x * lambda_y,
+                    -(pow(lambda_x, 2)),
+                    -(lambda_x * lambda_y),
+                ],
+                [
+                    lambda_x * lambda_y,
+                    pow(lambda_x, 2),
+                    -(lambda_x * lambda_y),
+                    -(pow(lambda_x, 2)),
+                ],
+                [
+                    -(pow(lambda_x, 2)),
+                    -(lambda_x * lambda_y),
+                    pow(lambda_x, 2),
+                    lambda_x * lambda_y,
+                ],
+                [
+                    -(lambda_x * lambda_y),
+                    -(pow(lambda_x, 2)),
+                    lambda_x * lambda_y,
+                    pow(lambda_x, 2),
+                ],
+            ]
+
+            msm = ((member["E"] * member["A"]) / length) * np.array(msm)
+
+            # Query the numbering order for the DOFs
+            dof_start_node = db.execute(
+                "SELECT id FROM dof_nodes WHERE (node=?);", member["start_node"]
+            )
+            dof_end_node = db.execute(
+                "SELECT id FROM dof_nodes WHERE (node=?);", member["end_node"]
+            )
+            dof_numbers = [
+                dof_start_node[0]["id"],
+                dof_start_node[1]["id"],
+                dof_end_node[0]["id"],
+                dof_end_node[1]["id"],
+            ]
+            matrix = {"index": dof_numbers, "matrix": msm}
+
+            matrices.append(matrix)
 
     def analyze(self):
         self.destroy_frame()
@@ -183,13 +289,17 @@ class App(customtkinter.CTk):
         n_members = db.execute("SELECT COUNT(*) AS n_M FROM members;")[0]["n_M"]
 
         # Check the stability of the truss
-        if self.check_stability(n_members, n_reactions, n_nodes):
+        if not self.check_stability(n_members, n_reactions, n_nodes):
+            CTkMessagebox(
+                title="Error",
+                message="Error encountered. Please check your inputs.",
+                option_1="cancel",
+            )
+        else:
             # Assign the degree of freedom the numbers by order
             response = self.assign_dof_numbers()
             if response:
-                print("Task completed...")
-        else:
-            CTkMessagebox(title="Error", message="Error encountered. Please check your inputs.", option_1="cancel")
+                self.generate_msm()
 
     def get_results(self):
         self.destroy_frame()

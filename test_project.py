@@ -1,5 +1,6 @@
 from gui import App
 
+
 def test_check_stability():
     assert App.check_stability(5, 3, 4) == True
     assert App.check_stability(5, 2, 4) == False
