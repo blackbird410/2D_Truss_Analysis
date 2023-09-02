@@ -7,7 +7,9 @@ from nodes import *
 from members import *
 from loads import *
 from data import *
+from functions import *
 from math import sqrt, pow
+from prettytable import PrettyTable
 
 
 class PLotFrame(customtkinter.CTkFrame):
@@ -116,19 +118,6 @@ class App(customtkinter.CTk):
         data_frame.grid(row=0, column=1, padx=10, pady=10)
         data_frame.grid_columnconfigure(minsize=100, index=0, weight=1)
 
-    @classmethod
-    def check_stability(cls, m, r, j):
-        """ "Verify the internal stability of a truss"""
-
-        try:
-            if (m > 1 and r > 2 and j > 2) and (m + r) >= 2 * j:
-                return True
-            else:
-                return False
-        except ValueError:
-            ...
-        return False
-
     def assign_dof_numbers(self):
         """Assign a number to a Degree Of Freedom by comparing the displacements at
         each DOF (unknown(rx=0 || ry=0) or known(rx=1 || ry=1))."""
@@ -185,7 +174,8 @@ class App(customtkinter.CTk):
             return False
 
     def generate_msm(self):
-        """Generates the stiffness matrices of each members of the truss."""
+        """Generates the stiffness matrices of each members of the truss.
+        Returns a list of the matrices (type: np.array)."""
 
         # Query the members, nodes and dof_nodes databases
         db = SQL("sqlite:///data.db")
@@ -204,8 +194,6 @@ class App(customtkinter.CTk):
                 JOIN nodes n1 ON n1.id=m.start_node
                 JOIN nodes n2 ON n2.id=m.end_node;"""
         )
-        # nodes = db.execute("SELECT * FROM nodes")
-        # dof_nodes = db.execute("SELECT * FROM dof_nodes")
 
         # Determine the stiffness matrix for each members and append the to a list
         matrices = []
@@ -268,9 +256,21 @@ class App(customtkinter.CTk):
                 dof_end_node[0]["id"],
                 dof_end_node[1]["id"],
             ]
-            matrix = {"index": dof_numbers, "matrix": msm}
 
-            matrices.append(matrix)
+            # Swap the rows and colummns of the matrix by sorting the index
+            # dof_numbers, msm = swap(dof_numbers, msm)
+            # No need to swap the rows and columns because the matrices are symetric
+            dof_numbers = sorted(dof_numbers)
+
+            # Querying the dimension of the global structure
+            dim = db.execute("SELECT COUNT(*) AS n FROM nodes;")[0]["n"] * 2
+
+            # Adding the columns and rows not present in the array to allow members matrix addition
+            msm = globalize(dim, dof_numbers, msm)
+
+            matrices.append(np.round(msm, 4))
+
+        return matrices
 
     def analyze(self):
         self.destroy_frame()
@@ -289,7 +289,7 @@ class App(customtkinter.CTk):
         n_members = db.execute("SELECT COUNT(*) AS n_M FROM members;")[0]["n_M"]
 
         # Check the stability of the truss
-        if not self.check_stability(n_members, n_reactions, n_nodes):
+        if not check_stability(n_members, n_reactions, n_nodes):
             CTkMessagebox(
                 title="Error",
                 message="Error encountered. Please check your inputs.",
@@ -299,7 +299,13 @@ class App(customtkinter.CTk):
             # Assign the degree of freedom the numbers by order
             response = self.assign_dof_numbers()
             if response:
-                self.generate_msm()
+                # Generate the global structure stiffness matrix
+                self.ssm = sum(self.generate_msm())
+                x = PrettyTable(self.ssm.dtype.names)
+                for row in self.ssm:
+                    x.add_row(row)
+                print(x)
+
 
     def get_results(self):
         self.destroy_frame()
