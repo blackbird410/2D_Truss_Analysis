@@ -265,9 +265,6 @@ class App(customtkinter.CTk):
                 dof_end_node[1]["id"],
             ]
 
-            # Swap the rows and colummns of the matrix by sorting the index
-            # dof_numbers, msm = swap(dof_numbers, msm)
-            # No need to swap the rows and columns because the matrices are symetric
             dof_numbers = sorted(dof_numbers)
 
             # Querying the dimension of the global structure
