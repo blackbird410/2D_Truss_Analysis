@@ -205,8 +205,14 @@ class App(customtkinter.CTk):
             )
 
             try:
-                lambda_x = (member["x_j"] - member["x_i"]) / length
-                lambda_y = (member["y_j"] - member["y_i"]) / length
+                lambda_x = abs(member["x_j"] - member["x_i"]) / length
+                lambda_y = abs(member["y_j"] - member["y_i"]) / length
+
+                print("Lambdas:")
+                print(lambda_x)
+                print(lambda_y)
+                print
+
             except ZeroDivisionError:
                 CTkMessagebox(
                     title="Error",
@@ -223,9 +229,9 @@ class App(customtkinter.CTk):
                 ],
                 [
                     lambda_x * lambda_y,
-                    pow(lambda_x, 2),
+                    pow(lambda_y, 2),
                     -(lambda_x * lambda_y),
-                    -(pow(lambda_x, 2)),
+                    -(pow(lambda_y, 2)),
                 ],
                 [
                     -(pow(lambda_x, 2)),
@@ -235,13 +241,15 @@ class App(customtkinter.CTk):
                 ],
                 [
                     -(lambda_x * lambda_y),
-                    -(pow(lambda_x, 2)),
+                    -(pow(lambda_y, 2)),
                     lambda_x * lambda_y,
-                    pow(lambda_x, 2),
+                    pow(lambda_y, 2),
                 ],
             ]
 
             msm = ((member["E"] * member["A"]) / length) * np.array(msm)
+
+            print(msm)
 
             # Query the numbering order for the DOFs
             dof_start_node = db.execute(
@@ -267,6 +275,9 @@ class App(customtkinter.CTk):
 
             # Adding the columns and rows not present in the array to allow members matrix addition
             msm = globalize(dim, dof_numbers, msm)
+
+            print()
+            print(msm)
 
             matrices.append(np.round(msm, 4))
 
@@ -304,6 +315,7 @@ class App(customtkinter.CTk):
                 x = PrettyTable(self.ssm.dtype.names)
                 for row in self.ssm:
                     x.add_row(row)
+                print()
                 print(x)
 
 
