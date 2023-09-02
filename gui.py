@@ -321,9 +321,19 @@ class App(customtkinter.CTk):
                 print(x)
 
                 load_v, dsp_v = self.get_loads_displacements()
-                print()
-                print(load_v)
-                print(dsp_v)
+
+                # Determine the unknown displacements
+                
+                # First partitionate the structure stiffness matrix
+                sub_ssm = self.ssm[:load_v.shape[0], :load_v.shape[0]]
+                try:
+                    # Multiply the load vector by the inverse of the sub matrix to find the unknowned displacements
+                    # X = A-1 * B
+                    dsp = np.linalg.inv(sub_ssm).dot(load_v)
+                    print(dsp)
+                except np.LinAlgError:
+                    CTkMessagebox(title="Error", message="The stiffness matrix is a singular matrix, could not invert.")
+                    
 
 
     def get_loads_displacements(self):
