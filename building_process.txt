@@ -11,4 +11,8 @@
     * Identify the known displacements(d = 0 in support reactions) by the highest number 
         to partitionate the structure stiffness matrix later
     * Establish member stiffness matrixes for each members
-    * Understand the use of stiffness matrixes
+    * Generate the structure stiffness matrix
+    * Determine the global components of the force and displacements using the structure stiffness equation.
+    * Divide the load and displacement vector between the known external loads and displacements, 
+        and the unknown loads and displacements.
+     

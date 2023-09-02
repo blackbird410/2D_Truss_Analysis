@@ -142,6 +142,7 @@ class App(customtkinter.CTk):
                     id INTEGER PRIMARY KEY NOT NULL,
                     node INTEGER NOT NULL,
                     axis TEXT NOT NULL,
+                    reaction INTEGER NOT NULL,
                     FOREIGN KEY(node) REFERENCES nodes(id));"""
             )
 
@@ -149,25 +150,29 @@ class App(customtkinter.CTk):
             for node in nodes:
                 if node["rx"] == 1 and node["ry"] == 0:
                     db.execute(
-                        "INSERT INTO dof_nodes (node, axis) VALUES (?, ?);",
+                        "INSERT INTO dof_nodes (node, axis, reaction) VALUES (?, ?, ?);",
                         node["id"],
                         "y",
+                        node["ry"]
                     )
                     db.execute(
-                        "INSERT INTO dof_nodes (node, axis) VALUES (?, ?);",
+                        "INSERT INTO dof_nodes (node, axis, reaction) VALUES (?, ?, ?);",
                         node["id"],
                         "x",
+                        node["rx"]
                     )
                 else:
                     db.execute(
-                        "INSERT INTO dof_nodes (node, axis) VALUES (?, ?);",
+                        "INSERT INTO dof_nodes (node, axis, reaction) VALUES (?, ?, ?);",
                         node["id"],
                         "x",
+                        node["rx"]
                     )
                     db.execute(
-                        "INSERT INTO dof_nodes (node, axis) VALUES (?, ?);",
+                        "INSERT INTO dof_nodes (node, axis, reaction) VALUES (?, ?, ?);",
                         node["id"],
                         "y",
+                        node["ry"]
                     )
             return True
         except:
@@ -314,6 +319,42 @@ class App(customtkinter.CTk):
                     x.add_row(row)
                 print()
                 print(x)
+
+                load_v, dsp_v = self.get_loads_displacements()
+                print()
+                print(load_v)
+                print(dsp_v)
+
+
+    def get_loads_displacements(self):
+        """"Generates the load and displacements vector for the truss."""
+
+        db = SQL("sqlite:///data.db")
+
+        # Query the loads and the dof_nodes from the database
+        loads = db.execute("SELECT * FROM loads;")
+        if not loads:
+            CTkMessagebox(title="Info", message="There is no load applied on the truss.")
+            return None
+        
+        dof_nodes = db.execute("SELECT * FROM dof_nodes;")
+        load_v = np.array([[]])
+        dsp_v = np.array([[]])
+
+        for dof in dof_nodes:
+            # Check if there is a support reaction there
+            if dof["reaction"] == 1:
+                dsp_v = np.insert(dsp_v, 0, 0, 1)
+            else:
+                for load in loads:
+                    if load["node"] == dof["node"]:
+                        if dof["axis"] == "x":
+                            load_v = np.insert(load_v, load_v.shape[1], load["x_load"], 1)
+                        else:
+                            load_v = np.insert(load_v, load_v.shape[1], load["y_load"], 1)
+        
+        # Transpose the arrays
+        return load_v.T, dsp_v.T
 
 
     def get_results(self):
