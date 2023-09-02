@@ -200,6 +200,17 @@ class App(customtkinter.CTk):
                 JOIN nodes n2 ON n2.id=m.end_node;"""
         )
 
+        # Add a new table of lambdas in the database
+        db.execute(
+            """CREATE TABLE IF NOT EXISTS lambdas(
+                    id INTEGER PRIMARY KEY NOT NULL,
+                    member INTEGER NOT NULL,
+                    lambda_x FLOAT NOT NULL,
+                    lambda_y FLOAT NOT NULL,
+                    length FLOAT NOT NULL,
+                    FOREIGN KEY(member) REFERENCES members (id));"""
+        )
+
         # Determine the stiffness matrix for each members and append the to a list
         matrices = []
         for member in members:
@@ -213,11 +224,8 @@ class App(customtkinter.CTk):
                 lambda_x = abs(member["x_j"] - member["x_i"]) / length
                 lambda_y = abs(member["y_j"] - member["y_i"]) / length
 
-                print("Lambdas:")
-                print(lambda_x)
-                print(lambda_y)
-                print
-
+                # Add the lambdas and length to the members table for finding the internal forces
+                db.execute("INSERT INTO lambdas (member, lambda_x, lambda_y, length) VALUES (?, ?, ?, ?);", member["id"], lambda_x, lambda_y, length)
             except ZeroDivisionError:
                 CTkMessagebox(
                     title="Error",
@@ -326,11 +334,15 @@ class App(customtkinter.CTk):
                 
                 # First partitionate the structure stiffness matrix
                 sub_ssm = self.ssm[:load_v.shape[0], :load_v.shape[0]]
+                sub_ssm_r = self.ssm[load_v.shape[0]:, :load_v.shape[0]]
                 try:
                     # Multiply the load vector by the inverse of the sub matrix to find the unknowned displacements
                     # X = A-1 * B
                     dsp = np.linalg.inv(sub_ssm).dot(load_v)
+                    reactions = sub_ssm_r.dot(dsp)
                     print(dsp)
+                    print()
+                    print(reactions)
                 except np.LinAlgError:
                     CTkMessagebox(title="Error", message="The stiffness matrix is a singular matrix, could not invert.")
                     

@@ -77,9 +77,6 @@ class Member(customtkinter.CTkFrame):
     def __init__(self, master):
         super().__init__(master)
 
-        # self.title("Members")
-        # self.geometry("350x350")
-
         # Creating a frame for the member parameters
         self.member_frame = MemberFrame(self)
         self.member_frame.grid(row=0, column=0, padx=0, pady=0)
