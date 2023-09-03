@@ -490,8 +490,9 @@ class App(customtkinter.CTk):
         db = SQL("sqlite:///data.db")
     
         # Check if the table has already been created
-        test = db.execute("""SELECT name FROM sqlite_master WHERE type="table" AND name=(?);""", tablename)
-        if test:
+        test = db.execute("""SELECT name FROM sqlite_master WHERE type="table" AND name=(?);""", "nodes_dsp")
+        test2 = db.execute("""SELECT name FROM sqlite_master WHERE type="table" AND name=(?);""", "internal_efforts")
+        if test and test2:
             result_frame = Result(self.option_frame)
             result_frame.grid(row=0, column=1, padx=10, pady=10)
             result_frame.grid_columnconfigure(minsize=100, index=0, weight=1)
