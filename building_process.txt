@@ -15,4 +15,4 @@
     * Determine the global components of the force and displacements using the structure stiffness equation.
     * Divide the load and displacement vector between the known external loads and displacements, 
         and the unknown loads and displacements.
-     
+    * Finfd the internal efforts in the memebers

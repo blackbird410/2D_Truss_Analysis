@@ -200,6 +200,14 @@ class App(customtkinter.CTk):
                 JOIN nodes n2 ON n2.id=m.end_node;"""
         )
 
+        # Check if this method has already been executed and the table already created
+        test = db.execute(
+            """SELECT name FROM sqlite_master WHERE type="table" AND name="lambdas";"""
+        )
+        if test:
+            # Remove the old table
+            db.execute("DROP TABLE lambdas;")
+
         # Add a new table of lambdas in the database
         db.execute(
             """CREATE TABLE IF NOT EXISTS lambdas(
@@ -331,7 +339,6 @@ class App(customtkinter.CTk):
                 load_v, dsp_v = self.get_loads_displacements()
 
                 # Determine the unknown displacements
-                
                 # First partitionate the structure stiffness matrix
                 sub_ssm = self.ssm[:load_v.shape[0], :load_v.shape[0]]
                 sub_ssm_r = self.ssm[load_v.shape[0]:, :load_v.shape[0]]
@@ -340,10 +347,81 @@ class App(customtkinter.CTk):
                     # X = A-1 * B
                     dsp = np.linalg.inv(sub_ssm).dot(load_v)
                     reactions = sub_ssm_r.dot(dsp)
-                    print(dsp)
-                    print()
-                    print(reactions)
-                except np.LinAlgError:
+                   
+                    # Find the internal efforts
+                    # Query the dof code numbers associated with each members
+                    dofs = db.execute(
+                        """SELECT m.id, 
+                                m.start_node, 
+                                m.end_node, 
+                                d1.id AS dof_SN, 
+                                d2.id AS dof_EN,
+                                lambda_x,
+                                lambda_y,
+                                length 
+                                FROM members m
+                                JOIN dof_nodes d1 ON m.start_node = d1.node
+                                JOIN dof_nodes d2 ON m.end_node = d2.node
+                                JOIN lambdas ON m.id = lambdas.member;""")
+                    
+                    # Filter duplicate values through a set
+                    set_list = []
+                    lambdas_list = []
+                    dof_set = set()
+                    dof_set_en = set()
+                    current = 0
+                    lambdas = {}
+                    for dof in dofs:
+                        if current and dof["id"] !=  current:
+                            # Add the sets
+                            dof_set.update(dof_set_en)
+                            set_list.append(dof_set)
+                            lambdas_list.append(lambdas)
+                            dof_set = set()
+                            dof_set_en = set()
+                            lambdas = {}
+
+                        dof_set.add(dof["dof_SN"])
+                        dof_set_en.add(dof["dof_EN"])
+                        current = dof["id"]
+
+                        # Get the orientations
+                        if "x" not in lambdas.keys():
+                            lambdas["x"] = dof["lambda_x"]
+                        if "y" not in lambdas.keys():
+                            lambdas["y"] = dof["lambda_y"]
+                        if "l" not in lambdas.keys():
+                            lambdas["l"] = dof["length"]
+
+                    # Add the last set
+                    dof_set.update(dof_set_en)
+                    set_list.append(dof_set)
+                    lambdas_list.append(lambdas)
+
+                    # Full displacement vector
+                    full_dsp = np.concatenate((dsp, dsp_v))
+
+                    # Get the appropriate displacement vector for each members by using the dof codes
+                    internal_efforts = []
+                    for i in range(len(set_list)):
+                        index = list(set_list[i]) 
+                        lambdas = lambdas_list[i]
+                        sub_dsp = np.concatenate(
+                            (full_dsp[(index[0]-1):(index[1])], full_dsp[(index[2]-1):(index[3])]))
+                        
+                        lambda_mat = np.array(
+                            [
+                                [-(lambdas["x"]), -(lambdas["y"]), lambdas["x"], lambdas["y"]]
+                            ])
+                        
+                        # Appending the result to the list
+                        internal_efforts.append((lambda_mat.dot(sub_dsp) / lambdas["l"])[0][0])
+                        print(internal_efforts)
+                        print()
+
+                    
+
+                except np.linalg.LinAlgError:
                     CTkMessagebox(title="Error", message="The stiffness matrix is a singular matrix, could not invert.")
                     
 
