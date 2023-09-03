@@ -7,6 +7,7 @@ from nodes import *
 from members import *
 from loads import *
 from data import *
+from results import *
 from functions import *
 from math import sqrt, pow
 from prettytable import PrettyTable
@@ -485,6 +486,17 @@ class App(customtkinter.CTk):
 
     def get_results(self):
         self.destroy_frame()
+
+        db = SQL("sqlite:///data.db")
+    
+        # Check if the table has already been created
+        test = db.execute("""SELECT name FROM sqlite_master WHERE type="table" AND name=(?);""", tablename)
+        if test:
+            result_frame = Result(self.option_frame)
+            result_frame.grid(row=0, column=1, padx=10, pady=10)
+            result_frame.grid_columnconfigure(minsize=100, index=0, weight=1)
+        else:
+            CTkMessagebox(title="Info", message="Truss not yet analyzed. Please analyze first.")
 
     def show_deformation(self):
         self.destroy_frame()
