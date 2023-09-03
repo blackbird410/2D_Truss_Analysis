@@ -126,13 +126,7 @@ class App(customtkinter.CTk):
             # Select the data of the nodes from the database by sorting them by rx and ry
             db = SQL("sqlite:///data.db")
 
-            # Check if this method has already been executed and the table already created
-            test = db.execute(
-                """SELECT name FROM sqlite_master WHERE type="table" AND name="dof_nodes";"""
-            )
-            if test:
-                # Remove the old table
-                db.execute("DROP TABLE dof_nodes")
+            check_table("dof_nodes")
 
             nodes = db.execute("SELECT * FROM nodes ORDER BY rx, ry;")
 
@@ -200,13 +194,7 @@ class App(customtkinter.CTk):
                 JOIN nodes n2 ON n2.id=m.end_node;"""
         )
 
-        # Check if this method has already been executed and the table already created
-        test = db.execute(
-            """SELECT name FROM sqlite_master WHERE type="table" AND name="lambdas";"""
-        )
-        if test:
-            # Remove the old table
-            db.execute("DROP TABLE lambdas;")
+        check_table("lambdas")
 
         # Add a new table of lambdas in the database
         db.execute(
@@ -327,6 +315,7 @@ class App(customtkinter.CTk):
         else:
             # Assign the degree of freedom the numbers by order
             response = self.assign_dof_numbers()
+            print(response)
             if response:
                 # Generate the global structure stiffness matrix
                 self.ssm = sum(self.generate_msm())
@@ -392,6 +381,8 @@ class App(customtkinter.CTk):
                             lambdas["y"] = dof["lambda_y"]
                         if "l" not in lambdas.keys():
                             lambdas["l"] = dof["length"]
+                        if "member" not in lambdas.keys():
+                            lambdas["member"] = dof["id"]
 
                     # Add the last set
                     dof_set.update(dof_set_en)
@@ -401,8 +392,47 @@ class App(customtkinter.CTk):
                     # Full displacement vector
                     full_dsp = np.concatenate((dsp, dsp_v))
 
+                    check_table("internal_efforts")
+                    check_table("node_dsp")
+
+                    # Create a table for saving the internal efforts results
+                    db.execute(
+                        """CREATE TABLE IF NOT EXISTS internal_efforts (
+                            id INTEGER PRIMARY KEY NOT NULL,
+                            member INTEGER NOT NULL,
+                            effort FLOAT NOT NULL,
+                            FOREIGN KEY(member) REFERENCES members(id));"""
+                    )
+
+                    # Create a table for saving the node displacements results
+                    db.execute(
+                        """CREATE TABLE IF NOT EXISTS node_dsp (
+                            id INTEGER PRIMARY KEY NOT NULL,
+                            node INTEGER NOT NULL,
+                            d_x FLOAT NOT NULL,
+                            d_y FLOAT NOT NULL,
+                            FOREIGN KEY(node) REFERENCES nodes(id));"""
+                    )
+
+                    dsp_dct = {}
+                    # Add the nodes displacements to the table
+                    d_x = 0
+                    d_y = 0
+                    for i in range(full_dsp.shape[0]):
+                        # print(np.round(d, 4)[0])
+                        dof_data = db.execute("SELECT axis, node FROM dof_nodes WHERE id=?;", i + 1)[0]
+                        if dof_data["axis"] == "x":
+                            d_x = np.round(full_dsp[i], 4)[0]
+                        else:
+                            d_y = np.round(full_dsp[i], 4)[0]
+                        
+                        dsp_dct[str(dof_data["node"])] = {"x": d_x, "y": d_y}
+
+                    for d in dsp_dct:
+                        db.execute("INSERT INTO node_dsp (node, d_x, d_y) VALUES (?, ?, ?);", int(d), dsp_dct[d]["x"], dsp_dct[d]["y"])
+
+
                     # Get the appropriate displacement vector for each members by using the dof codes
-                    internal_efforts = []
                     for i in range(len(set_list)):
                         index = list(set_list[i]) 
                         lambdas = lambdas_list[i]
@@ -414,12 +444,8 @@ class App(customtkinter.CTk):
                                 [-(lambdas["x"]), -(lambdas["y"]), lambdas["x"], lambdas["y"]]
                             ])
                         
-                        # Appending the result to the list
-                        internal_efforts.append((lambda_mat.dot(sub_dsp) / lambdas["l"])[0][0])
-                        print(internal_efforts)
-                        print()
-
-                    
+                        # Inserting the result to the table
+                        db.execute("INSERT INTO internal_efforts (member, effort) VALUES (?, ?);", lambdas["member"], np.round(lambda_mat.dot(sub_dsp) / lambdas["l"], 4)[0][0])
 
                 except np.linalg.LinAlgError:
                     CTkMessagebox(title="Error", message="The stiffness matrix is a singular matrix, could not invert.")

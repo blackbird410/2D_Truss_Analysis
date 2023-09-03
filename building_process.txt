@@ -5,7 +5,7 @@
 3- Parse the database and plot the drawing of the truss while user are inputing data
     * Create a plot function
 4- Create a frame that allows the user to see the database
-5- Create computational function for the analysis of the truss
+5- Create computational functions for the analysis of the truss
     * Verify the internal stability of the truss
     * Find the degrees of freedom
     * Identify the known displacements(d = 0 in support reactions) by the highest number 
@@ -15,4 +15,6 @@
     * Determine the global components of the force and displacements using the structure stiffness equation.
     * Divide the load and displacement vector between the known external loads and displacements, 
         and the unknown loads and displacements.
-    * Finfd the internal efforts in the memebers
+    * Find the internal efforts in the members
+    * Find the dof_code associated with each members to partitionate the matrix
+    * Add results printing interface

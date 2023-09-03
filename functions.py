@@ -1,4 +1,5 @@
 import numpy as np
+from cs50 import SQL
 
 
 def check_stability(m, r, j):
@@ -60,3 +61,14 @@ def globalize(dim, index, arr):
         c += 1
 
     return arr
+
+def check_table(tablename):
+    """Check if an sql table exists in the database, if yes, removes it."""
+
+    db = SQL("sqlite:///data.db")
+    
+    # Check if the table has already been created
+    test = db.execute("""SELECT name FROM sqlite_master WHERE type="table" AND name=(?);""", tablename)
+    if test:
+        # Remove the old table
+        db.execute("DROP TABLE ?;", tablename)
