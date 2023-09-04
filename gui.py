@@ -406,6 +406,7 @@ class App(customtkinter.CTk):
 
                     check_table("internal_efforts")
                     check_table("node_dsp")
+                    check_table("reactions")
 
                     # Create a table for saving the internal efforts results
                     db.execute(
@@ -425,6 +426,23 @@ class App(customtkinter.CTk):
                             d_y FLOAT NOT NULL,
                             FOREIGN KEY(node) REFERENCES nodes(id));"""
                     )
+
+                    # Create a table for saving the reactions results
+                    db.execute(
+                        """CREATE TABLE IF NOT EXISTS reactions (
+                            id INTEGER PRIMARY KEY NOT NULL,
+                            node INTEGER NOT NULL,
+                            axis TEXT NOT NULL,
+                            reaction FLOAT NOT NULL,
+                            FOREIGN KEY(node) REFERENCES nodes(id));"""
+                    )
+
+                    index_start = self.ssm.shape[0] - n_constrained + 1
+
+                    # Add the reactions to the table
+                    for i in range(n_constrained):
+                        n = db.execute("SELECT node, axis FROM dof_nodes WHERE id=?;", index_start + i)[0]
+                        db.execute("INSERT INTO reactions (node, axis, reaction) VALUES (?, ?, ?);", n["node"], n["axis"], reactions[[i][0]][0])
 
                     dsp_dct = {}
                     # Add the nodes displacements to the table
