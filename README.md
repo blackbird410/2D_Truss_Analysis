@@ -1,17 +1,18 @@
-# 2D_Truss_Analysis
-As a Final Project of the following CS50 and CS50P courses on EdX, I decided to implement 
-a 2D Truss Analysis program in python. This repository regroups all the files of the project's 
-implementation.
+# Planar Truss Analysis
+Before transitioning to a career in Computer Science, I pursued my studies as a third-year Civil Engineering student. During this time, I constantly pondered how I could leverage my coding skills within the realm of my academic pursuits, seeking to create something valuable not only for myself but also for fellow students. One particular structural aspect that captivated my interest was the truss.
+
+As the culmination of my coursework in the CS50 and CS50P courses on EdX, I embarked on a project to develop a Python-based 2D Truss Analysis program. This software is designed to comprehensively analyze truss structures, providing insights into support reactions, node displacements, and even presenting a visual representation of the deformed structure.
+
+I firmly believe that this tool will prove invaluable to second and third-year Civil Engineering students enrolled in Structural Analysis courses. It will assist them in validating their manual calculations, fostering a deeper understanding of the subject matter.
+
+This repository serves as a centralized hub housing all the project's implementation files.
 
 ## What is a truss ?
 ![A bridge using a truss as base structure to supports loads.](/images/RRTrussBridgeSideView.jpg)
 
-To know what this program is doing, first we need to know what is a **Truss**. A truss is an assembly 
-of members such as beams, connected by nodes, that creates a rigid structure. In other words, they 
-are basically bars oriented in two dimensional cartesian systems. Trusses are very common type of 
-structures used in steel buildings and bridges. Eg. Railway bridges, transmission towers. These could 
-be entirely entirely in a plane – 2D trusses trusses or spatial spatial – 3D trusses. Specially, if 
-all the members of a truss and the applied loads lie in a single plane, the truss is called a _plane truss_.
+To understand the functionality of this program, it's essential to grasp the concept of a truss. A truss is essentially an assembly of structural members, typically beams, interconnected at nodes, forming a stable framework. In simpler terms, trusses consist of bars arranged within a two-dimensional Cartesian system. They are a prevalent structural element found in applications such as steel buildings and bridges, including examples like railway bridges and transmission towers.
+
+Trusses can exist in two primary forms: as 2D trusses, entirely confined to a single plane, or as 3D trusses, which extend into three-dimensional space. Specifically, when all the truss members and applied loads are situated within a single plane, we refer to it as a plane truss.
 
 ## What are the components of the truss?
 A truss fundamental components are: 
@@ -21,11 +22,9 @@ and by frictionless ball-and-socket joints in space trusses. In a truss, they ar
 forces (compression or tension).
 
 ## Computational requirements:
-* Before any computation, the internal stability of a truss must be assessed. Meaning that the number and 
-geometric arrangement of its members is such that the truss does not change its shape and remains a rigid 
-body when detached from the supports. The term _internal_ is used here to refer to the number and arrangement 
-of members contained within the truss. The instability due to insufficient external supports or due to improper 
-arrangement of external supports is referred to as _external_.
+* Prior to undertaking any computations, it's imperative to evaluate the internal stability of a truss. This evaluation ensures that the truss, when detached from its supports, maintains its shape and remains a structurally rigid entity. In this context, 'internal' pertains to the count and configuration of the members intrinsic to the truss itself.
+
+It's worth noting that instability resulting from inadequate external support or incorrect placement of external supports is termed 'external instability.
 
 > [!NOTE]
 > The internal stability of a determinate plane truss is assessed by this equation :
@@ -58,13 +57,8 @@ to them, this type of connection provides an equation of condition:
 In this program, we use the **Stiffness Method**, more precisely the **displacement method** to 
 analyze the truss. 
 
-Application of the stiffness method requires subdividing the structure into a series of discrete 
-finite elements and identifying their end points as nodes. For truss analysis, the finite elements 
-are represented by each of the members that compose the truss, and the nodes represent the joints.
-The force-displacement properties of each element are determined and then related to one another 
-using the force equilibrium equations written at the nodes. These relationships, for the entire 
-structure, are then grouped together into what is called the structure *stiffness matrix ***K****.
+In this program, we employ the Stiffness Method, specifically the displacement method, to conduct truss analysis.
 
-Once it is established, the unknown displacements of the nodes can then be determined for any given 
-loading on the structure. When these displacements are known, the external and internal forces in 
-the structure can be calculated using the force-displacement relations for each member.
+The Stiffness Method necessitates breaking down the structure into discrete finite elements and designating their endpoints as nodes. In the context of truss analysis, these finite elements correspond to individual truss members, while the nodes signify the joints or connections. We determine the force-displacement characteristics of each element and subsequently interrelate them through the force equilibrium equations established at the nodes. These interconnected relationships are then consolidated into what is referred to as the structure's **stiffness matrix**, denoted as ***K**.
+
+Once the stiffness matrix is defined, we can ascertain the unknown displacements of the nodes under any given load applied to the structure. With knowledge of these displacements, we can subsequently compute both the external and internal forces within the structure by leveraging the force-displacement relations for each individual member.
