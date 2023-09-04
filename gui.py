@@ -538,55 +538,51 @@ class App(customtkinter.CTk):
     def show_deformation(self):
         """Shows the truss deformations after analysis of the effect of the loads applied."""
 
-        # self.destroy_frame()
-        # Clean the plot frame
-        # self.fig.clf()
-        # self.ax.cla()
-        # self.fig, self.ax = plt.subplots()
+        try:
+            # Parse the database to collect the data
+            db = SQL("sqlite:///data.db")
 
-        # Parse the database to collect the data
-        db = SQL("sqlite:///data.db")
+            check_table("deformations")
 
-        check_table("deformations")
+            # Create a table for the new coordinates
+            db.execute(
+                """CREATE TABLE IF NOT EXISTS deformations (
+                    id INTEGER PRIMARY KEY NOT NULL,
+                    node INTEGER NOT NULL,
+                    x FLOAT NOT NULL,
+                    y FLOAT NOT NULL,
+                    FOREIGN KEY(node) REFERENCES nodes(id));"""
+            )
 
-        # Create a table for the new coordinates
-        db.execute(
-            """CREATE TABLE IF NOT EXISTS deformations (
-                id INTEGER PRIMARY KEY NOT NULL,
-                node INTEGER NOT NULL,
-                x FLOAT NOT NULL,
-                y FLOAT NOT NULL,
-                FOREIGN KEY(node) REFERENCES nodes(id));"""
-        )
+            nodes = db.execute("SELECT id, x, y FROM nodes;")
+            for node in nodes:
+                dsp = db.execute("SELECT d_x, d_y FROM node_dsp WHERE node=?;", node["id"])[0]
+                db.execute("INSERT INTO deformations (node, x, y) VALUES (?, ?, ?);", node["id"], (node["x"] + dsp["d_x"]), (node["y"] + dsp["d_y"]))
 
-        nodes = db.execute("SELECT id, x, y FROM nodes;")
-        for node in nodes:
-            dsp = db.execute("SELECT d_x, d_y FROM node_dsp WHERE node=?;", node["id"])[0]
-            db.execute("INSERT INTO deformations (node, x, y) VALUES (?, ?, ?);", node["id"], (node["x"] + dsp["d_x"]), (node["y"] + dsp["d_y"]))
+            # Start plotting deformed shape
+            members = db.execute(
+                """SELECT m.id, start_node, end_node, d1.x AS x_i, d1.y AS y_i, d2.x AS x_j, d2.y AS y_j FROM members m
+                    JOIN deformations d1 ON d1.node=m.start_node
+                    JOIN deformations d2 ON d2.id=m.end_node;"""
+            )
 
-        # Start plotting deformed shape
-        members = db.execute(
-            """SELECT m.id, start_node, end_node, d1.x AS x_i, d1.y AS y_i, d2.x AS x_j, d2.y AS y_j FROM members m
-                JOIN deformations d1 ON d1.node=m.start_node
-                JOIN deformations d2 ON d2.id=m.end_node;"""
-        )
+            x_coords = []
+            y_coords = []
 
-        x_coords = []
-        y_coords = []
+            for member in members:
+                x_coords.append(member["x_i"])
+                y_coords.append(member["y_i"])
+                x_coords.append(member["x_j"])
+                y_coords.append(member["y_j"])
 
-        for member in members:
-            x_coords.append(member["x_i"])
-            y_coords.append(member["y_i"])
-            x_coords.append(member["x_j"])
-            y_coords.append(member["y_j"])
-
-        # self.fig.title("Deformations")
-        self.fig.set_figwidth(5.5)
-        self.fig.set_figheight(3.8)
-        self.ax.plot(x_coords, y_coords, 'r--', label="After deformation")
-        self.ax.legend(loc=1)
-        self.canvas = FigureCanvasTkAgg(self.fig, self.plot_frame)
-        self.canvas.get_tk_widget().grid(row=0, column=0)
+            self.fig.set_figwidth(5.5)
+            self.fig.set_figheight(3.8)
+            self.ax.plot(x_coords, y_coords, 'r--', label="After deformation")
+            self.ax.legend(loc=1)
+            self.canvas = FigureCanvasTkAgg(self.fig, self.plot_frame)
+            self.canvas.get_tk_widget().grid(row=0, column=0)
+        except:
+            CTkMessagebox(title="Info", message="Please analyze the structure first.")
 
 
     def exit(self):
@@ -647,7 +643,6 @@ class App(customtkinter.CTk):
             x_coords.append(member["x_j"])
             y_coords.append(member["y_j"])
 
-        # self.fig.title
         self.fig.set_figwidth(5.5)
         self.fig.set_figheight(3.8)
         self.ax.plot(x_coords, y_coords, label="Before deformation")
