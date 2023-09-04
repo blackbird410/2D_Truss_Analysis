@@ -347,7 +347,7 @@ class App(customtkinter.CTk):
                     # X = A-1 * B
                     a = np.linalg.inv(sub_ssm)
                     dsp = a.dot(load_v)
-                    reactions = sub_ssm_r.dot(dsp)
+                    reactions = np.round(sub_ssm_r.dot(dsp), 4)
                    
                     # Find the internal efforts
                     # Query the dof code numbers associated with each members

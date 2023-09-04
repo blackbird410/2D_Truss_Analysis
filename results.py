@@ -14,17 +14,21 @@ class Result(customtkinter.CTkFrame):
         db = SQL("sqlite:///data.db")
 
         table_list = []
-        for table in ["node_dsp", "internal_efforts"]:
-            table_list.append(db.execute("SELECT * FROM ?;", table))
+        # for table in ["node_dsp", "internal_efforts", "reactions"]:
+        table_list.append(db.execute("SELECT node, d_x, d_y FROM node_dsp;"))
+        table_list.append(db.execute("SELECT member, effort FROM internal_efforts;"))
+        table_list.append(db.execute("SELECT node, axis, reaction FROM reactions;"))
 
         self.table_headers = [
-            ["id", "Node", "D_x", "D_y"],
-            ["id", "Member", "Effort(K)"],
+            ["Node", "D_x", "D_y"],
+            ["Member", "Effort(K)"],
+            ["Node", "Axis", "Reaction(K)"]
         ]
 
         self.table_widths = [
-            [80, 80, 80, 80],
             [80, 80, 80],
+            [80, 80],
+            [80, 80, 80]
         ]
 
         counter = 0
