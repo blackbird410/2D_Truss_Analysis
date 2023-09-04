@@ -218,8 +218,8 @@ class App(customtkinter.CTk):
             )
 
             try:
-                lambda_x = abs(member["x_j"] - member["x_i"]) / length
-                lambda_y = abs(member["y_j"] - member["y_i"]) / length
+                lambda_x = round((member["x_j"] - member["x_i"]) / length, 4)
+                lambda_y = round((member["y_j"] - member["y_i"]) / length, 4)
 
                 # Add the lambdas and length to the members table for finding the internal forces
                 db.execute("INSERT INTO lambdas (member, lambda_x, lambda_y, length) VALUES (?, ?, ?, ?);", member["id"], lambda_x, lambda_y, length)
@@ -259,23 +259,28 @@ class App(customtkinter.CTk):
 
             msm = ((member["E"] * member["A"]) / length) * np.array(msm)
 
-            print(msm)
-
             # Query the numbering order for the DOFs
             dof_start_node = db.execute(
-                "SELECT id FROM dof_nodes WHERE (node=?);", member["start_node"]
+                "SELECT id, axis FROM dof_nodes WHERE (node=?);", member["start_node"]
             )
             dof_end_node = db.execute(
-                "SELECT id FROM dof_nodes WHERE (node=?);", member["end_node"]
+                "SELECT id, axis FROM dof_nodes WHERE (node=?);", member["end_node"]
             )
-            dof_numbers = [
-                dof_start_node[0]["id"],
-                dof_start_node[1]["id"],
-                dof_end_node[0]["id"],
-                dof_end_node[1]["id"],
-            ]
+            dof_numbers = []
 
-            dof_numbers = sorted(dof_numbers)
+            if dof_start_node[0]["axis"] == "x":
+                dof_numbers.append(dof_start_node[0]["id"])
+                dof_numbers.append(dof_start_node[1]["id"])
+            else:
+                dof_numbers.append(dof_start_node[1]["id"])
+                dof_numbers.append(dof_start_node[0]["id"])
+            
+            if dof_end_node[0]["axis"] == "x":
+                dof_numbers.append(dof_end_node[0]["id"])
+                dof_numbers.append(dof_end_node[1]["id"])
+            else:
+                dof_numbers.append(dof_end_node[1]["id"])
+                dof_numbers.append(dof_end_node[0]["id"])
 
             # Querying the dimension of the global structure
             dim = db.execute("SELECT COUNT(*) AS n FROM nodes;")[0]["n"] * 2
@@ -283,10 +288,7 @@ class App(customtkinter.CTk):
             # Adding the columns and rows not present in the array to allow members matrix addition
             msm = globalize(dim, dof_numbers, msm)
 
-            print()
-            print(msm)
-
-            matrices.append(np.round(msm, 4))
+            matrices.append(msm)
 
         return matrices
 
@@ -316,26 +318,35 @@ class App(customtkinter.CTk):
         else:
             # Assign the degree of freedom the numbers by order
             response = self.assign_dof_numbers()
-            print(response)
+            
             if response:
                 # Generate the global structure stiffness matrix
-                self.ssm = sum(self.generate_msm())
-                x = PrettyTable(self.ssm.dtype.names)
-                for row in self.ssm:
-                    x.add_row(row)
-                print()
-                print(x)
+                self.ssm = np.round(sum(self.generate_msm()), 4)
+                # x = PrettyTable(self.ssm.dtype.names)
+                # for row in self.ssm:
+                #     x.add_row(row)
+                # print()
+                # print(x)
 
-                load_v, dsp_v = self.get_loads_displacements()
+                l = self.get_loads_displacements()
+                full_load_v = l[0]
+                dsp_v = l[1]
+                n_constrained = l[2]
+
+                # Find the correct load vector without the constrained part
+                load_v = full_load_v[:(self.ssm.shape[0] - n_constrained)]
 
                 # Determine the unknown displacements
                 # First partitionate the structure stiffness matrix
                 sub_ssm = self.ssm[:load_v.shape[0], :load_v.shape[0]]
                 sub_ssm_r = self.ssm[load_v.shape[0]:, :load_v.shape[0]]
+
+
                 try:
                     # Multiply the load vector by the inverse of the sub matrix to find the unknowned displacements
                     # X = A-1 * B
-                    dsp = np.linalg.inv(sub_ssm).dot(load_v)
+                    a = np.linalg.inv(sub_ssm)
+                    dsp = a.dot(load_v)
                     reactions = sub_ssm_r.dot(dsp)
                    
                     # Find the internal efforts
@@ -432,13 +443,12 @@ class App(customtkinter.CTk):
                     for d in dsp_dct:
                         db.execute("INSERT INTO node_dsp (node, d_x, d_y) VALUES (?, ?, ?);", int(d), dsp_dct[d]["x"], dsp_dct[d]["y"])
 
-
                     # Get the appropriate displacement vector for each members by using the dof codes
                     for i in range(len(set_list)):
-                        index = list(set_list[i]) 
+                        index = sorted(list(set_list[i])) 
                         lambdas = lambdas_list[i]
                         sub_dsp = np.concatenate(
-                            (full_dsp[(index[0]-1):(index[1])], full_dsp[(index[2]-1):(index[3])]))
+                            (full_dsp[(index[0]-1):index[1]], full_dsp[(index[2]-1):(index[3])]))
                         
                         lambda_mat = np.array(
                             [
@@ -467,21 +477,29 @@ class App(customtkinter.CTk):
         dof_nodes = db.execute("SELECT * FROM dof_nodes;")
         load_v = np.array([[]])
         dsp_v = np.array([[]])
+        n_constrained = 0
 
         for dof in dof_nodes:
-            # Check if there is a support reaction there
-            if dof["reaction"] == 1:
-                dsp_v = np.insert(dsp_v, 0, 0, 1)
-            else:
+            # Check if there is a support reaction there or there is no load applied
+            is_loaded = db.execute("SELECT * FROM loads WHERE node=?;", dof["node"])
+
+            if is_loaded:
                 for load in loads:
                     if load["node"] == dof["node"]:
                         if dof["axis"] == "x":
                             load_v = np.insert(load_v, load_v.shape[1], load["x_load"], 1)
                         else:
                             load_v = np.insert(load_v, load_v.shape[1], load["y_load"], 1)
+            else:
+                if dof["reaction"] == 1:
+                    n_constrained += 1
+                    dsp_v = np.insert(dsp_v, 0, 0, 1)
+
+                load_v = np.insert(load_v, dof["id"] - 1, 0, 1)
+                
         
         # Transpose the arrays
-        return load_v.T, dsp_v.T
+        return [load_v.T, dsp_v.T, n_constrained]
 
 
     def get_results(self):
@@ -515,7 +533,7 @@ class App(customtkinter.CTk):
 
         if response == "Yes":
             self.destroy()
-        sys.exit("Program terminated...")
+            sys.exit("Program terminated...")
 
     def reset(self):
         if os.path.exists("data.db"):
@@ -528,7 +546,7 @@ class App(customtkinter.CTk):
                 option_2="Yes",
             )
             if response.get() == "Yes":
-                # os.remove("data.db")
+                os.remove("data.db")
                 CTkMessagebox(title="Info", message="DATABASE ERASED")
 
     def plot_data(self):

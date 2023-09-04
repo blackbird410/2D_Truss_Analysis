@@ -18,3 +18,6 @@
     * Find the internal efforts in the members
     * Find the dof_code associated with each members to partitionate the matrix
     * Add results printing interface
+
+
+    TODO: Correct the column permutation in the ssm matrix
