@@ -15,9 +15,9 @@ class Result(customtkinter.CTkFrame):
 
         table_list = []
         # for table in ["node_dsp", "internal_efforts", "reactions"]:
-        table_list.append(db.execute("SELECT node, d_x, d_y FROM node_dsp;"))
-        table_list.append(db.execute("SELECT member, effort FROM internal_efforts;"))
-        table_list.append(db.execute("SELECT node, axis, reaction FROM reactions;"))
+        table_list.append(db.execute("SELECT node, d_x, d_y FROM node_dsp ORDER BY node;"))
+        table_list.append(db.execute("SELECT member, effort FROM internal_efforts ORDER BY member;"))
+        table_list.append(db.execute("SELECT node, axis, reaction FROM reactions ORDER BY node;"))
 
         self.table_headers = [
             ["Node", "D_x", "D_y"],

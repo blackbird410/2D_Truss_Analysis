@@ -100,24 +100,35 @@ class App(customtkinter.CTk):
 
     def add_nodes(self):
         self.destroy_frame()
+        if not os.path.exists("data.db"):
+            create_database()
         node_frame = Node(self.option_frame)
         node_frame.grid(row=0, column=1, padx=10, pady=10)
 
     def add_members(self):
         self.destroy_frame()
-        member_frame = Member(self.option_frame)
-        member_frame.grid(row=0, column=1, padx=10, pady=10)
+        if not os.path.exists("data.db"):
+            CTkMessagebox(title="Info", message="Please add the truss nodes first.")
+        else:
+            member_frame = Member(self.option_frame)
+            member_frame.grid(row=0, column=1, padx=10, pady=10)
 
     def add_loads(self):
         self.destroy_frame()
-        load_frame = Load(self.option_frame)
-        load_frame.grid(row=0, column=1, padx=10, pady=10)
+        if not os.path.exists("data.db"):
+            CTkMessagebox(title="Info", message="Please add the truss members first.")
+        else:
+            load_frame = Load(self.option_frame)
+            load_frame.grid(row=0, column=1, padx=10, pady=10)
 
     def show_data(self):
         self.destroy_frame()
-        data_frame = Data(self.option_frame)
-        data_frame.grid(row=0, column=1, padx=10, pady=10)
-        data_frame.grid_columnconfigure(minsize=100, index=0, weight=1)
+        if not os.path.exists("data.db"):
+            CTkMessagebox(title="Info", message="Please add the truss components first.")
+        else:
+            data_frame = Data(self.option_frame)
+            data_frame.grid(row=0, column=1, padx=10, pady=10)
+            data_frame.grid_columnconfigure(minsize=100, index=0, weight=1)
 
     def assign_dof_numbers(self):
         """Assign a number to a Degree Of Freedom by comparing the displacements at
@@ -616,6 +627,8 @@ class App(customtkinter.CTk):
                 self.fig.clf()
                 self.ax.cla()
                 self.fig, self.ax = plt.subplots()
+                self.canvas = FigureCanvasTkAgg(self.fig, self.plot_frame)
+                self.canvas.get_tk_widget().grid(row=0, column=0)
 
                 CTkMessagebox(title="Info", message="DATABASE ERASED")
 
